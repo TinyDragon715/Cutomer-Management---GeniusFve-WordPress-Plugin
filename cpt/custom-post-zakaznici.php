@@ -163,9 +163,9 @@ if( !function_exists("customer_management_info_page") ) {
         <table class="table" style="text-align: center;" id="myTable">
             <thead>
                 <tr>
-                    <th class="myTH">Id</th>
+                    <th class="myTH">No</th>
                     <th class="myTH">Title</th>
-                    <th class="myTH">Status</th>
+                    <th class="myTH">Stav</th>
                     <th class="myTH">Odpovědná Osoba</th>
                     <th class="myTH">E-mail</th>
                     <th class="myTH">Telefon</th>
@@ -178,8 +178,8 @@ if( !function_exists("customer_management_info_page") ) {
                     <th class="myTH">Zákazníci</th>
                     <th class="myTH">Formulář poptávky</th>
                     <th class="myTH">Obhlídka</th>
-                    <th class="myTH">Poznámka</th>
                     <th class="myTH">Nabídky</th>
+                    <th class="myTH">Poznámka</th>
                 </tr>
             </thead>
             <tbody>
@@ -309,11 +309,10 @@ if( !function_exists("customer_management_info_page") ) {
                                                 'post_id' => $obhlidka,
                                                 'new_form_flag' => 0,
                                             ), admin_url('admin.php?page=obhlidka') ) . '">Zobrazit</a>'
+                    . '</td><td><a href="' . add_query_arg( array(
+                                                'customer_id' => $post->ID,
+                                            ), admin_url('post-new.php?post_type=nabidky') ) . '">Vytvořit</a>'
                     . '</td><td contenteditable="true" class="poznamka" data-id="' . $post->ID . '">' . ($poznamka ? $poznamka : 'nic')
-                    . '</td>
-                    <td><a href="' . add_query_arg( array(
-                        'customer_id' => $post->ID,
-                    ), admin_url('post-new.php?post_type=nabidky') ) . '">Nabídky</a>'
                     . '</td></tr>';
 
                     $i++;
@@ -408,7 +407,7 @@ if( !function_exists("customer_management_info_page") ) {
                             $('#myTable_wrapper').prepend(div1);
 
                             // Status filter
-                            var label1 = $(`<label style="margin-left: 20px; margin-bottom: 0px;">Status:</label>`); $('#my_filter').append(label1);
+                            var label1 = $(`<label style="margin-left: 20px; margin-bottom: 0px;">Stav:</label>`); $('#my_filter').append(label1);
                             var select1 = $(`
                                 <select class="form-control" id="mySelect1" style="width: 180px !important; margin-left: 10px;">
                                     <option value="">Please choose</option>

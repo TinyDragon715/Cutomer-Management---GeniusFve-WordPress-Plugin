@@ -264,52 +264,86 @@ function get_komponenty_action() {
 	wp_die();
 }
 
-	// $customer_id = filter_input( INPUT_GET, "customer_id", FILTER_SANITIZE_STRING );
-	// $customer_meta = get_post_meta($customer_id);
+// $customer_id = filter_input( INPUT_GET, "customer_id", FILTER_SANITIZE_STRING );
+// $customer_meta = get_post_meta($customer_id);
 
 add_action( 'wp_ajax_get_nabidky_action', 'get_nabidky_action' );
-	function get_nabidky_action() {
-		
-		$customer_id = intval( $_POST['customer_id']);
-		$email = get_post_meta($customer_id, 'e-mail', true);
-		$telefon = get_post_meta($customer_id, 'telefon', true);
-		$adresa_realizace = get_post_meta($customer_id, 'adresa_realizace', true);
-		$title = get_the_title($customer_id);
-		echo json_encode(array('email' => $email, 'telefon' => $telefon, 'title' => $title));
-		wp_die();
+function get_nabidky_action() {
+	$customer_id = intval( $_POST['customer_id']);
+	$post = get_post($customer_id);
+
+	$email = get_post_meta($customer_id, 'e-mail', true);
+	$telefon = get_post_meta($customer_id, 'telefon', true);
+	$adresa_realizace = get_post_meta($customer_id, 'adresa_realizace', true);
+	$formular = get_post_meta($customer_id, 'formular', true);
+	$kraj = get_post_meta($formular, '_field_63', true);
+	$kraj = $kraj != null ? $kraj : 'Hlavn msto Praha';
+	$args = array(
+		'post_type' => 'stav',
+		'post_status' => 'publish',
+		'numberposts' => -1,
+		'orderby' => 'id',
+		'order' => 'ASC'
+	);
+	$stavs = get_posts($args);
+	$status = get_post_meta($customer_id, 'status', true);
+    $status = $status ? $status : $stavs[0]->ID;
+	for ($j = 0; $j < count($stavs); $j++) {
+		if ($stavs[$j]->ID == $status)
+			$status = $stavs[$j]->post_title;
+	}
+	if ($status == 1) $status = $stavs[0]->post_title;
+	$material_krytiny = get_post_meta($formular, '_field_21', true);
+	$rozmer_strechy = get_post_meta($formular, '_field_24', true);
+
+	echo json_encode(
+		array(
+			'title' => $post->post_title,
+			'datum' => $post->post_date_gmt,
+			'email' => $email,
+			'telefon' => $telefon,
+			'adresa_instalace' => $adresa_realizace,
+			'kraj' => $kraj,
+			'status' => $status,
+			'material_krytiny' => $material_krytiny,
+			'rozmer_strechy' => $rozmer_strechy,
+		)
+	);
+	wp_die();
 }
 
 add_action( 'wp_ajax_get_package_action', 'get_package_action' );
-	function get_package_action() {
-		
-		$balicy_id = intval( $_POST['package']);
-		$balicy_panel_id = get_post_meta( $balicy_id, 'panel', true);
-		$balicy_baterie_id = get_post_meta( $balicy_id, 'baterie', true);
-		$balicy_stridac_id = get_post_meta( $balicy_id, 'stridac', true);
-		
-		$balicy_panel_n = get_post_meta( $balicy_id, 'defaultni_pocet_panelu', true);
-		$balicy_baterie_n = get_post_meta( $balicy_id, 'defaultni_pocet_baterii', true);
-		$balicy_stridac_n = get_post_meta( $balicy_id, 'defaultni_pocet_stridacu', true);
+function get_package_action() {
+	
+	$balicy_id = intval( $_POST['package']);
+	$balicy_panel_id = get_post_meta( $balicy_id, 'panel', true);
+	$balicy_baterie_id = get_post_meta( $balicy_id, 'baterie', true);
+	$balicy_stridac_id = get_post_meta( $balicy_id, 'stridac', true);
+	
+	$balicy_panel_n = get_post_meta( $balicy_id, 'defaultni_pocet_panelu', true);
+	$balicy_baterie_n = get_post_meta( $balicy_id, 'defaultni_pocet_baterii', true);
+	$balicy_stridac_n = get_post_meta( $balicy_id, 'defaultni_pocet_stridacu', true);
 
-		$balicy_panel_cena = get_post_meta( $balicy_panel_id, 'cena_prodej', true);
-		$balicy_baterie_cena = get_post_meta( $balicy_baterie_id, 'cena_prodej', true);
-		$balicy_stridac_cena = get_post_meta( $balicy_stridac_id, 'cena_prodej', true);
+	$balicy_panel_cena = get_post_meta( $balicy_panel_id, 'cena_nakup', true);
+	$balicy_baterie_cena = get_post_meta( $balicy_baterie_id, 'cena_nakup', true);
+	$balicy_stridac_cena = get_post_meta( $balicy_stridac_id, 'cena_nakup', true);
 
-		$balicek_komponenty = get_field('komponenty', $balicy_id);
+	$balicek_komponenty = get_field('komponenty', $balicy_id);
 
-		$komponenty_price = 0;
-		foreach ($balicek_komponenty as $key => $value) {
-			$komponenty_price += (int)get_post_meta($value->ID, 'cena_prodej', true);
-		}
-		$package_price = $komponenty_price + (int)$balicy_panel_cena * (int)$balicy_panel_n + (int)$balicy_baterie_cena * (int)$balicy_baterie_n + (int)$balicy_stridac_cena * (int)$balicy_stridac_n;
-		echo json_encode(array('package_price' => $package_price));
-		wp_die();
+	$komponenty_price = 0;
+	foreach ($balicek_komponenty as $key => $value) {
+		$tmp = (int)get_post_meta($value->ID, 'cena_prodej', true);
+		$komponenty_price += $tmp;
 	}
+	$package_price = $komponenty_price + (int)$balicy_panel_cena * (int)$balicy_panel_n + (int)$balicy_baterie_cena * (int)$balicy_baterie_n + (int)$balicy_stridac_cena * (int)$balicy_stridac_n;
+	echo json_encode(array('package_price' => $package_price));
+	wp_die();
+}
 
 add_action( 'wp_ajax_get_dotace_action', 'get_dotace_action' );
-	function get_dotace_action() {
-		$dotace_id = intval( $_POST['dotace']);
-		$dotace_price = get_post_meta( $dotace_id, 'vyse', true);
-		echo json_encode(array('dotace_price' => $dotace_price));
-		wp_die();
-	}
+function get_dotace_action() {
+	$dotace_id = intval( $_POST['dotace']);
+	$dotace_price = get_post_meta( $dotace_id, 'vyse', true);
+	echo json_encode(array('dotace_price' => $dotace_price));
+	wp_die();
+}

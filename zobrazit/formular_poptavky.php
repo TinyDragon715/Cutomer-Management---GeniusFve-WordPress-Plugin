@@ -42,7 +42,6 @@ $title = explode(' ', $post[0]->post_title, 2);
             </div>
         </div>
 
-        <?php echo $meta['_field_63'][0]; ?>
         <div class="form-group">
             <label for="_field_63">Kraj</label>
             <select class="form-control" id="_field_63" value="<?php echo $meta['_field_63'][0]; ?>">

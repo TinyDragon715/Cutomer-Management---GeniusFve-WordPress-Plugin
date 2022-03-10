@@ -167,7 +167,7 @@ function manage_nabidky_columns($column, $post_id) {
                         <div class="btn btn-contrac btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout smlouvu"><i class="fas fa-copy"></i> </div> 
                         <div class="btn btn-zakaznic btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout obhlídkový formulář"><i class="fas fa-address-card"></i> </div> 
                         <div class="btn btn-technical btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat Rozpočtovou tabulku"><i class="fas fa-calculator"></i> </div> 
-                        <div class="btn btn-edit btn-purple" data-id="'.$post_id.'"><i class="fas fa-pencil-alt"></i> </div> 
+                        <div class="btn btn-edit btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Editovat"><i class="fas fa-pencil-alt"></i> </div> 
                         <div class="btn btn-delete" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Smazat"> <i class="fas fa-trash-alt"></i></button> ';
             if (empty($value)) echo __('Unknown');
             else printf( __('%s'), $value);
