@@ -393,8 +393,12 @@ if( !function_exists("customer_management_info_page") ) {
             select1ContentArray = <?php echo json_encode($stavTitles); ?>;
             select3ContentArray = <?php echo json_encode($osobaTitles); ?>;
 
+            // get saved datatable length
+            var datatable_length = sessionStorage.getItem('datatable_length');
+            datatable_length = datatable_length ? parseInt(datatable_length) : 10;
+
             var myTable = $('#myTable').DataTable( {
-				// 'iDisplayLength': 100,
+				'iDisplayLength': datatable_length,
                 initComplete: function () {
                     this.api().columns().eq(0).each( function (index) {
                         const columnStatus = this.column(8);
@@ -468,7 +472,7 @@ if( !function_exists("customer_management_info_page") ) {
                             var label5 = $(`<label style="margin-left: 10px; margin-bottom: 0px;">To:</label>`); $('#my_filter').append(label5);
                             var max = $(`<input type="date" style="width: 170px !important; margin-left: 10px;" id="datepicker_to">`)
                             .on( 'change', function () {
-                                sessionStorage.setItem('date_to',$('#datepicker_to').val());
+                                sessionStorage.setItem('date_to', $('#datepicker_to').val());
                                 myTable.draw();
                             } ); $('#my_filter').append(max);
                         }
@@ -486,7 +490,27 @@ if( !function_exists("customer_management_info_page") ) {
                     if (krajFilter) {
                         $('#mySelect3').val(krajFilter).change();
                     }
+
+                    // get saved datatable page
+                    var datatable_page = sessionStorage.getItem('datatable_page');
+                    if (datatable_page) {
+                        this.api().page(parseInt(datatable_page)).draw(false);
+                    }
                 }
+            } );
+
+            // Datatable - pagination change event
+            $('#myTable').on( 'page.dt', function () {
+                var info = myTable.page.info();
+                sessionStorage.setItem('datatable_page', info.page);
+            } );
+
+            // Datatable - length change event
+            $('#myTable').on( 'length.dt', function () {
+                var len = myTable.page.len();
+                var info = myTable.page.info();
+                sessionStorage.setItem('datatable_length', len);
+                sessionStorage.setItem('datatable_page', info.page);
             } );
 
             var dateFrom = sessionStorage.getItem('date_from');

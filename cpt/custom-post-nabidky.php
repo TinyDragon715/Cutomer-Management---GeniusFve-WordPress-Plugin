@@ -163,12 +163,20 @@ function manage_nabidky_columns($column, $post_id) {
             break;    
         case 'akce' :
             // $value = get_post_meta($post_id, 'customer_id', true);
-            $value = '  <div class="btn btn-calendar btn-green" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat PDF nabídku"> <i class="fas fa-calendar-alt"></i></div> 
-                        <div class="btn btn-contrac btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout smlouvu"><i class="fas fa-copy"></i> </div> 
-                        <div class="btn btn-zakaznic btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout obhlídkový formulář"><i class="fas fa-address-card"></i> </div> 
-                        <div class="btn btn-technical btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat Rozpočtovou tabulku"><i class="fas fa-calculator"></i> </div> 
-                        <div class="btn btn-edit btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Editovat"><i class="fas fa-pencil-alt"></i> </div> 
-                        <div class="btn btn-delete" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Smazat"> <i class="fas fa-trash-alt"></i></button> ';
+            $name = get_post_meta($post_id, 'zakaznik', true);
+            $post = get_page_by_title($name, OBJECT, 'zakaznik');
+            $zakaznici_post_id = $post->ID;
+            $obhlidka_post_id = get_post_meta($zakaznici_post_id, 'obhlidka', true);
+            $value = '  <button class="btn btn-calendar btn-green" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat PDF nabídku"> <i class="fas fa-calendar-alt"></i></button> 
+                        <button class="btn btn-contrac btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout smlouvu"><i class="fas fa-copy"></i> </button>';
+            if ($obhlidka_post_id) {
+                $value .= '<button class="btn btn-zakaznic btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout obhlídkový formulář"><i class="fas fa-address-card"></i> </button>';
+            } else {
+                $value .= '<button class="btn btn-zakaznic btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Stáhnout obhlídkový formulář" disabled><i class="fas fa-address-card"></i> </button>';
+            }
+            $value .= ' <button class="btn btn-technical btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat Rozpočtovou tabulku"><i class="fas fa-calculator"></i> </button> 
+                        <button class="btn btn-edit btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Editovat"><i class="fas fa-pencil-alt"></i> </button> 
+                        <button class="btn btn-delete" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Smazat"> <i class="fas fa-trash-alt"></i></button> ';
             if (empty($value)) echo __('Unknown');
             else printf( __('%s'), $value);
 

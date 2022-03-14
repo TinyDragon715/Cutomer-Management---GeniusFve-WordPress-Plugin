@@ -82,17 +82,32 @@ $title = explode(' ', $post[0]->post_title, 2);
             </div>
         </div>
 
-        <?php $data = unserialize($meta['_field_34'][0]); ?>
+        <?php
+            $data = unserialize($meta['_field_34'][0]);
+            $match_value = ['plyn', 'elektrina', 'jine'];
+            $flag = [0, 0, 0];
+            for ($i = 0; $i < count($data); $i++) {
+                for ($j = 0; $j < count($match_value); $j++) {
+                    if ($data[$i] == $match_value[$j]) {
+                        $flag[$j] = 1;
+                    }
+                }
+            }
+        ?>
         <div class="form-row">
             <div class="form-group">
                 <label for="exampleInputEmail1">Způsob vytápění</label>
                 <div class="form-check">
-                    <input type="checkbox" id="plyn" <?php if($data[0] == 'plyn' || $data[1] == 'plyn') echo 'checked'; ?>>
+                    <input type="checkbox" id="plyn" <?php if($flag[0]) echo 'checked'; ?>>
                     <label for="plyn">Plyn</label>
                 </div>
                 <div class="form-check">
-                    <input type="checkbox" id="elektrina" <?php if($data[0] == 'elektrina' || $data[1] == 'elektrina') echo 'checked'; ?>>
+                    <input type="checkbox" id="elektrina" <?php if($flag[1]) echo 'checked'; ?>>
                     <label for="elektrina">Elektřina</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="jine" <?php if($flag[2]) echo 'checked'; ?>>
+                    <label for="elektrina">Jiné</label>
                 </div>
             </div>
         </div>
@@ -254,6 +269,7 @@ $title = explode(' ', $post[0]->post_title, 2);
                     <option value="google" <?php if ($meta['_field_58'][0] == 'google') echo "selected"; ?>>Google</option>
                     <option value="seznam" <?php if ($meta['_field_58'][0] == 'seznam') echo "selected"; ?>>Seznam</option>
                     <option value="tel_nabidka" <?php if ($meta['_field_58'][0] == 'tel_nabidka') echo "selected"; ?>>Telefonickou nabídku</option>
+                    <option value="elkov" <?php if ($meta['_field_58'][0] == 'elkov') echo "selected"; ?>>Elkov</option>
                 </select>
             </div>
         </div>
@@ -291,7 +307,7 @@ jQuery(document).on('click', '.f-save-btn', function() {
     for (i = 0; i < 6; i++) select[i] = jQuery('#_field_' + index_arr[i]).val();
     textarea[0] = jQuery('#_field_23').val();
     radio[0] = jQuery('input[name="f-radio"]:checked').val();
-    checkbox[0] = (jQuery('#plyn').is(":checked") ? 1 : 0) * 1 + (jQuery('#elektrina').is(":checked") ? 1 : 0) * 2;
+    checkbox[0] = (jQuery('#plyn').is(":checked") ? 1 : 0) * 1 + (jQuery('#elektrina').is(":checked") ? 1 : 0) * 2 + (jQuery('#jine').is(":checked") ? 1 : 0) * 4;
 
     jQuery.ajax({
         url : "<?php echo esc_url(admin_url('admin-ajax.php')) ?>",
@@ -319,4 +335,3 @@ jQuery(document).on('click', '.f-save-btn', function() {
     });
 });
 </script>
-<?php
