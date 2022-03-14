@@ -1,12 +1,11 @@
 <?php
-
 add_action('init', 'register_script');
 function register_script() {
     // wp_register_script( 'my_jQuery', 'https://code.jquery.com/jquery-3.5.1.js', null, null, false );
     wp_register_script( 'dataTables', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js', null, null, false );
     wp_register_script( 'dropzone', 'https://unpkg.com/dropzone@5/dist/min/dropzone.min.js', null, null, false );
 
-    wp_register_style( 'bootstrap_style', plugins_url('/css/customer-management.css', __DIR__), false, '1.0.0', 'all');
+    // wp_register_style( 'bootstrap_style', plugins_url('/css/customer-management.css', __DIR__), false, '1.0.0', 'all');
     wp_register_style( 'dataTables', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css', null, null, false );
     wp_register_style( 'dropzone', 'https://unpkg.com/dropzone@5/dist/min/dropzone.min.css', null, null, false );
     wp_register_style( 'my_style', plugins_url('/css/custom.css', __DIR__), false, '1.0.0', 'all');
@@ -17,15 +16,16 @@ function enqueue_style(){
     // wp_enqueue_script('my_jQuery');
     wp_enqueue_script('dataTables');
     wp_enqueue_script('dropzone');
-    wp_enqueue_script('dropzone','path/to/dropzone', array('jquery'));
-    wp_enqueue_script('my-script','path/to/script',array('jquery','dropzone'));
+    wp_enqueue_script('dropzone', 'path/to/dropzone', array('jquery'));
+    wp_enqueue_script('my-script', 'path/to/script', array('jquery', 'dropzone'));
+    wp_enqueue_script('custom_bootstrap_script', "https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js");
     $drop_param = array(
-    'upload'=>admin_url( 'admin-ajax.php?action=handle_dropped_media' ),
-    'delete'=>admin_url( 'admin-ajax.php?action=handle_deleted_media' ),
+        'upload'=>admin_url( 'admin-ajax.php?action=handle_dropped_media' ),
+        'delete'=>admin_url( 'admin-ajax.php?action=handle_deleted_media' ),
     );
     wp_localize_script('my-script','dropParam', $drop_param);
     
-    wp_enqueue_style( 'bootstrap_style' );
+    // wp_enqueue_style( 'bootstrap_style' );
     wp_enqueue_style( 'dataTables' );
     wp_enqueue_style( 'dropzone' );
     wp_enqueue_style( 'my_style' );
@@ -159,6 +159,32 @@ if( !function_exists("customer_management_info_page") ) {
 //	add_customers_automatically();
 
         ?>
+        <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+  Launch demo modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
         <h1>Customer Info</h1>
         <table class="table" style="text-align: center;" id="myTable">
             <thead>
@@ -288,8 +314,8 @@ if( !function_exists("customer_management_info_page") ) {
 
                     
                     echo '<tr data-id="' . $post->ID . '"><td>' . $i
-                    . '</td><td>' . $title
-                    . '</td><td' . $style . '>' . $htmlStatus
+                    . '</td><td><a href="#exampleModal" data-toggle="modal" data-target="#exampleModal">' . $title
+                    . '</a></td><td' . $style . '>' . $htmlStatus
                     . '</td><td>' . $htmlOsoba
                     . '</td><td>' . $email
                     . '</td><td>' . $telefon
