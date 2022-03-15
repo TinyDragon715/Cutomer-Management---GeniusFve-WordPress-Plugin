@@ -1,18 +1,20 @@
 <?php
 add_action('init', 'register_script');
 function register_script() {
+    wp_register_script( 'customer_zakaznici_js', plugins_url('/js/zakaznici.js', __DIR__), null, null, false);
     // wp_register_script( 'my_jQuery', 'https://code.jquery.com/jquery-3.5.1.js', null, null, false );
     wp_register_script( 'dataTables', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js', null, null, false );
     wp_register_script( 'dropzone', 'https://unpkg.com/dropzone@5/dist/min/dropzone.min.js', null, null, false );
 
+    wp_register_style( 'my_style', plugins_url('/css/custom.css', __DIR__), false, '1.0.0', 'all');
     // wp_register_style( 'bootstrap_style', plugins_url('/css/customer-management.css', __DIR__), false, '1.0.0', 'all');
     wp_register_style( 'dataTables', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css', null, null, false );
     wp_register_style( 'dropzone', 'https://unpkg.com/dropzone@5/dist/min/dropzone.min.css', null, null, false );
-    wp_register_style( 'my_style', plugins_url('/css/custom.css', __DIR__), false, '1.0.0', 'all');
 }
 
 add_action('admin_enqueue_scripts', 'enqueue_style');
 function enqueue_style(){
+    wp_enqueue_script('customer_zakaznici_js');
     // wp_enqueue_script('my_jQuery');
     wp_enqueue_script('dataTables');
     wp_enqueue_script('dropzone');
@@ -25,10 +27,10 @@ function enqueue_style(){
     );
     wp_localize_script('my-script','dropParam', $drop_param);
     
+    wp_enqueue_style( 'my_style' );
     // wp_enqueue_style( 'bootstrap_style' );
     wp_enqueue_style( 'dataTables' );
     wp_enqueue_style( 'dropzone' );
-    wp_enqueue_style( 'my_style' );
 }
 
 add_action( 'admin_menu', 'customer_management_info_menu' );
@@ -159,53 +161,68 @@ if( !function_exists("customer_management_info_page") ) {
 //	add_customers_automatically();
 
         ?>
-        <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-  Launch demo modal
-</button>
-
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Modal -->
+        <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group row">
+                            <label id="c_m_number" class="col-sm-6 col-form-label">Číslo zákazníka: </label>
+                            <label id="c_m_name" class="col-sm-6 col-form-label">Název: </label>
+                        </div>
+                        <div class="form-group row">
+                            <label id="c_m_status" class="col-sm-6 col-form-label">Stav: </label>
+                            <label id="c_m_responsible_person" class="col-sm-6 col-form-label">Odpovědná Osoba: </label>
+                        </div>
+                        <div class="form-group row">
+                            <label id="c_m_email" class="col-sm-6 col-form-label">E-mail: </label>
+                            <label id="c_m_telephone" class="col-sm-6 col-form-label">Telefon: </label>
+                        </div>
+                        <div class="form-group row">
+                            <label id="c_m_region" class="col-sm-6 col-form-label">Kraj: </label>
+                            <label id="c_m_address" class="col-sm-6 col-form-label">Adresa realizace: </label>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-6 col-form-label">Termín: </label>
+                            <input id="c_m_created_date" type="date" class="termin" value="" data-id="">
+                        </div>
+                        <div class="form-group row" style="display: flex; justify-content: space-around;">
+                            <a id="c_m_zakaznici" href="#">Zákazníci</a>
+                            <a id="c_m_formular_poptavky" href="#">Formulář poptávky</a>
+                            <a id="c_m_obhlidka" href="#">Obhlídka</a>
+                            <a id="c_m_nabidky" href="#">Nabídky</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <h1>Customer Info</h1>
         <table class="table" style="text-align: center;" id="myTable">
             <thead>
                 <tr>
-                    <th class="myTH">No</th>
-                    <th class="myTH">Title</th>
-                    <th class="myTH">Stav</th>
-                    <th class="myTH">Odpovědná Osoba</th>
-                    <th class="myTH">E-mail</th>
-                    <th class="myTH">Telefon</th>
-                    <th class="myTH">Kraj</th>
-                    <th class="myTH">Adresa realizace</th>
+                    <th>Číslo zákazníka</th>
+                    <th>Název</th>
+                    <th>Stav</th>
                     <th style="display: none;"></th>
+                    <th>Odpovědná Osoba</th>
                     <th style="display: none;"></th>
-                    <th class="myTH">Datum vytvoření</th>
-                    <th class="myTH">Termín</th>
-                    <th class="myTH">Zákazníci</th>
-                    <th class="myTH">Formulář poptávky</th>
-                    <th class="myTH">Obhlídka</th>
-                    <th class="myTH">Nabídky</th>
-                    <th class="myTH">Poznámka</th>
+                    <th style="display: none;">E-mail</th>
+                    <th style="display: none;">Telefon</th>
+                    <th>Kraj</th>
+                    <th style="display: none;">Adresa realizace</th>
+                    <th style="display: none;">Datum vytvoření</th>
+                    <th style="display: none;">Termín</th>
+                    <th>Zákazníci</th>
+                    <th>Formulář poptávky</th>
+                    <th>Obhlídka</th>
+                    <th>Nabídky</th>
+                    <th style="display: none;">Poznámka</th>
                 </tr>
             </thead>
             <tbody>
@@ -253,6 +270,10 @@ if( !function_exists("customer_management_info_page") ) {
 
                 $i = 1;
                 foreach($posts as $post) {
+                    list($date, $time) = explode(" ", $post->post_date_gmt);
+                    $date = str_replace('-', '', $date);
+                    $customer_number = $date . $post->ID;
+
                     $meta = get_post_meta($post->ID);
                     $title = $post->post_title;
                     $email = $meta['e-mail'][0];
@@ -313,33 +334,40 @@ if( !function_exists("customer_management_info_page") ) {
                     }
 
                     
-                    echo '<tr data-id="' . $post->ID . '"><td>' . $i
-                    . '</td><td><a href="#exampleModal" data-toggle="modal" data-target="#exampleModal">' . $title
-                    . '</a></td><td' . $style . '>' . $htmlStatus
-                    . '</td><td>' . $htmlOsoba
-                    . '</td><td>' . $email
-                    . '</td><td>' . $telefon
-                    . '</td><td>' . $kraj
-                    . '</td><td>' . $adresa_realizace
-                    . '</td><td style="display: none;">' . $stavAAA
-                    . '</td><td style="display: none;">' . $odpovednaOsoba
-                    . '</td><td>' . $post->post_date_gmt
-                    . '</td><td><input type="date" class="termin" value="' . $termin . '" data-id="'.$post->ID.'">'
-                    . '</td><td><a href="' . get_edit_post_link($post->ID) . '">Upravit</a>'
-                    . '</td><td><a href="' . add_query_arg( array(
+                    echo '<tr data-id="' . $post->ID . '">' .
+                            '<td>' . $customer_number . '</td>' .
+                            '<td><a href="#customerModal" data-toggle="modal" data-target="#customerModal">' . $title . '</a></td>' .
+                            '<td' . $style . '>' . $htmlStatus . '</td>' .
+                            '<td style="display: none;">' . $stavAAA . '</td>' .
+                            '<td>' . $htmlOsoba . '</td>' .
+                            '<td style="display: none;">' . $odpovednaOsoba . '</td>' .
+                            '<td style="display: none;">' . $email . '</td>' .
+                            '<td style="display: none;">' . $telefon . '</td>' .
+                            '<td>' . $kraj . '</td>' .
+                            '<td style="display: none;">' . $adresa_realizace . '</td>' .
+                            '<td style="display: none;">' . $post->post_date_gmt . '</td>' .
+                            '<td style="display: none;"><input type="date" class="termin" value="' . $termin . '" data-id="'.$post->ID.'">' . '</td>' .
+                            '<td><a href="' . get_edit_post_link($post->ID) . '">Upravit</a>' . '</td>' .
+                            '<td>' .
+                                '<a href="' . add_query_arg( array(
                                                 'customer_id' => $post->ID,
                                                 'post_id' => $formular,
-                                            ), admin_url('admin.php?page=formular_poptavky') ) . '">Zobrazit</a>'
-                    . '</td><td><a href="' . add_query_arg( array(
+                                            ), admin_url('admin.php?page=formular_poptavky') ) . '">Zobrazit</a>' .
+                            '</td>' .
+                            '<td>' .
+                                '<a href="' . add_query_arg( array(
                                                 'customer_id' => $post->ID,
                                                 'post_id' => $obhlidka,
                                                 'new_form_flag' => 0,
-                                            ), admin_url('admin.php?page=obhlidka') ) . '">Zobrazit</a>'
-                    . '</td><td><a href="' . add_query_arg( array(
+                                            ), admin_url('admin.php?page=obhlidka') ) . '">Zobrazit</a>' .
+                            '</td>' .
+                            '<td>' .
+                                '<a href="' . add_query_arg( array(
                                                 'customer_id' => $post->ID,
-                                            ), admin_url('post-new.php?post_type=nabidky') ) . '">Vytvořit</a>'
-                    . '</td><td contenteditable="true" class="poznamka" data-id="' . $post->ID . '">' . ($poznamka ? $poznamka : 'nic')
-                    . '</td></tr>';
+                                            ), admin_url('post-new.php?post_type=nabidky') ) . '">Vytvořit</a>' .
+                            '</td>' .
+                            '<td style="display: none;" contenteditable="true" class="poznamka" data-id="' . $post->ID . '">' . ($poznamka ? $poznamka : 'nic') . '</td>' .
+                    '</tr>';
 
                     $i++;
                 }
@@ -352,7 +380,7 @@ if( !function_exists("customer_management_info_page") ) {
         
         jQuery(document).on('change', '.termin', function() {
             let termin = jQuery(this).val();
-            let postID = jQuery(this).parent().parent().attr('data-id');
+            let postID = jQuery(this).attr('data-id');
             
             jQuery.ajax({
                 url : '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -363,6 +391,7 @@ if( !function_exists("customer_management_info_page") ) {
                     termin : termin,
                 },
                 success : function( response ) {
+                    window.location.href = '<?php echo admin_url('admin.php?page=customer-management'); ?>';
                     console.log('success');
                 },
                 error: function (error) {
@@ -425,12 +454,12 @@ if( !function_exists("customer_management_info_page") ) {
 
             var myTable = $('#myTable').DataTable( {
 				'iDisplayLength': datatable_length,
+                'order': [0, 'desc'],
                 initComplete: function () {
                     this.api().columns().eq(0).each( function (index) {
-                        const columnStatus = this.column(8);
-                        // const columnOsoba  = this.column(3);
-                        const columnKraj   = this.column(6);
-                        const columnOsoba  = this.column(9);
+                        const columnStatus = this.column(3);
+                        const columnOsoba  = this.column(5);
+                        const columnKraj   = this.column(8);
 
                         if (index === 5) {
                             var div1 = $(`<div id='my_filter' style='display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;'></div>`);
@@ -547,18 +576,6 @@ if( !function_exists("customer_management_info_page") ) {
             if (dateTo) {
                 $('#datepicker_to').val(dateTo).change();
             }
-
-            $('#myTable').css('width', 'inherit');
-            $('#myTable').css('display', 'block');
-            $('#myTable').css('overflow-x', 'auto');
-            $('#myTable thead tr th').css('width', 'inherit');
-            $('#myTable thead tr th').eq(1).css('min-width', '100px');
-            $('#myTable thead tr th').eq(3).css('min-width', '150px');
-            $('#myTable thead tr th').eq(4).css('min-width', '50px');
-            $('#myTable thead tr th').eq(6).css('min-width', '150px');
-            $('#myTable thead tr th').eq(7).css('min-width', '150px');
-            $('#myTable thead tr th').eq(9).css('min-width', '150px');
-            $('#myTable thead tr th').eq(12).css('min-width', '150px');
         } );
 
         jQuery.fn.dataTable.ext.search.push(
