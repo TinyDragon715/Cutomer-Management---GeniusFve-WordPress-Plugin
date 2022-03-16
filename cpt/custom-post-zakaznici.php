@@ -164,13 +164,15 @@ if( !function_exists("customer_management_info_page") ) {
         <!-- Modal -->
         <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
+                <div class="modal-content form-style-5">
                     <div class="modal-header">
+                        <h5 id="c_m_title" class="modal-title"></h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" id="c_m_body">
+                        <legend><span class="number">1</span> Informace o zákazníkovi</legend>
                         <div class="form-group row">
                             <label id="c_m_number" class="col-sm-6 col-form-label">Číslo zákazníka: </label>
                             <label id="c_m_name" class="col-sm-6 col-form-label">Název: </label>
@@ -188,14 +190,23 @@ if( !function_exists("customer_management_info_page") ) {
                             <label id="c_m_address" class="col-sm-6 col-form-label">Adresa realizace: </label>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-6 col-form-label">Termín: </label>
-                            <input id="c_m_created_date" type="date" class="termin" value="" data-id="">
+                            <label class="col-sm-6 col-form-label">
+                                Termín:
+                                <input id="c_m_end_date" type="date" class="termin" value="" data-id="">
+                            </label>
+                            <label id="c_m_created_date" class="col-sm-6 col-form-label">Datum vytvoření: </label>
                         </div>
+                        <legend><span class="number">2</span> Aktivita</legend>
                         <div class="form-group row" style="display: flex; justify-content: space-around;">
                             <a id="c_m_zakaznici" href="#">Zákazníci</a>
                             <a id="c_m_formular_poptavky" href="#">Formulář poptávky</a>
                             <a id="c_m_obhlidka" href="#">Obhlídka</a>
                             <a id="c_m_nabidky" href="#">Nabídky</a>
+                        </div>
+                        <legend><span class="number">3</span> Komentář</legend>
+                        <div class="form-group row">
+                            <textarea class="col-sm-9" oninput="auto_grow(this)" placeholder="Napsat komentář..."></textarea>
+                            <button class="offset-sm-1 col-sm-2 btn btn-primary comment-save" style="height: 50px;" data-id="">Save</button>
                         </div>
                     </div>
                 </div>
@@ -324,6 +335,22 @@ if( !function_exists("customer_management_info_page") ) {
                     $termin = $meta['termin'][0];
                     $poznamka = $meta['poznamka'][0];
 
+                    if ($meta['poznamka'][0]) {
+                        $current_user = wp_get_current_user();
+                        $comment_data = array(
+                            'comment_post_ID'      => $post->ID,
+                            'comment_content'      => $meta['poznamka'][0],
+                            'user_id'              => $current_user->ID,
+                            'comment_author'       => $current_user->user_login,
+                            'comment_author_email' => $current_user->user_email,
+                            'comment_author_url'   => $current_user->user_url,
+                        );
+                        wp_insert_comment($comment_data);
+                        delete_post_meta($post->ID, 'poznamka');
+                    }
+
+                    $comments = get_comments( array( 'post_id' => $post->ID ) );
+
                     $formular_meta = get_post_meta($formular);
                     $kraj = $formular_meta['_field_63'][0];
                     $kraj = $kraj != null ? $kraj : 'Hlavní město Praha';
@@ -333,7 +360,6 @@ if( !function_exists("customer_management_info_page") ) {
                             $kraj = $GLOBALS["kraj_arr"][$j - 1]['right'];
                     }
 
-                    
                     echo '<tr data-id="' . $post->ID . '">' .
                             '<td>' . $customer_number . '</td>' .
                             '<td><a href="#customerModal" data-toggle="modal" data-target="#customerModal">' . $title . '</a></td>' .
@@ -366,7 +392,13 @@ if( !function_exists("customer_management_info_page") ) {
                                                 'customer_id' => $post->ID,
                                             ), admin_url('post-new.php?post_type=nabidky') ) . '">Vytvořit</a>' .
                             '</td>' .
-                            '<td style="display: none;" contenteditable="true" class="poznamka" data-id="' . $post->ID . '">' . ($poznamka ? $poznamka : 'nic') . '</td>' .
+                            '<td style="display: none;" contenteditable="true" class="poznamka" data-id="' . $post->ID . '">';
+                    foreach ( $comments as $comment ) {
+                        echo    '<div>' . $comment->comment_author . '</div>';
+                        echo    '<div>' . $comment->comment_date . '</div>';
+                        echo    '<div>' . $comment->comment_content . '</div>';
+                    }
+                    echo    '</td>' .
                     '</tr>';
 
                     $i++;
@@ -377,6 +409,28 @@ if( !function_exists("customer_management_info_page") ) {
 
         <script>
         $ = jQuery;
+
+        jQuery(document).on('click', '.comment-save', function() {
+            let comment = jQuery(event.target).closest('div').find('textarea').val();
+            let postID = jQuery(this).attr('data-id');
+            
+            jQuery.ajax({
+                url : '<?php echo admin_url('admin-ajax.php'); ?>',
+                type : 'post',
+                data : {
+                    action : 'send_comment',
+                    postID : postID,
+                    comment : comment,
+                },
+                success : function( response ) {
+                    window.location.href = '<?php echo admin_url('admin.php?page=customer-management'); ?>';
+                    console.log('success');
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+        });
         
         jQuery(document).on('change', '.termin', function() {
             let termin = jQuery(this).val();
