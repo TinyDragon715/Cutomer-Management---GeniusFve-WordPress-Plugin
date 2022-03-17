@@ -206,7 +206,7 @@ if( !function_exists("customer_management_info_page") ) {
                         <legend><span class="number">3</span> Komentář</legend>
                         <div class="form-group row">
                             <textarea class="col-sm-9" oninput="auto_grow(this)" placeholder="Napsat komentář..."></textarea>
-                            <button class="offset-sm-1 col-sm-2 btn btn-primary comment-save" style="height: 50px;" data-id="">Save</button>
+                            <button class="offset-sm-1 col-sm-2 btn btn-primary comment-save" style="height: 50px;" data-id="">Uložit</button>
                         </div>
                     </div>
                 </div>
@@ -296,10 +296,11 @@ if( !function_exists("customer_management_info_page") ) {
                     else
                         $status = $meta['status'][0];
                     // if ($status < 20)
-                    //     update_post_meta($post->ID, 'status', 2031 + $status);
+                    //     update_post_meta($post->ID, 'status', 2813 + $status);
                     
                     $style = '';
                     $htmlStatus = '<select class="form-select status-select" data-id="' . $post->ID . '" value="' . $status . '">';
+                    $stavAAA = $stavs[0]->post_title;
                     for ($j = 0; $j < count($stavs); $j++) {
                         $htmlStatus .= $status == $stavs[$j]->ID ?
                                 '<option value="' . $stavs[$j]->ID . '" selected>' . $stavs[$j]->post_title . '</option>' :
@@ -317,7 +318,7 @@ if( !function_exists("customer_management_info_page") ) {
                     $htmlStatus .= '</select>';
 
                     if (empty($meta['odpovedna_osoba'])) {
-                        $odpovedna = get_field('odpovedna_osoba', $status);
+                        $odpovedna = get_field('odpovedna_osoba', $stavs[0]->ID);
                         $odpovednaOsoba = $odpovedna->post_title;
                     } else {
                         $odpovednaOsoba = $meta['odpovedna_osoba'][0];

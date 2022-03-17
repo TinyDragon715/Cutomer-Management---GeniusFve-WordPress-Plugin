@@ -40,21 +40,21 @@ function download_pdf() {
     $panel_name = $panel->post_title;
     $panel_vyrobce =  get_field('vyrobce', $panel_id);
     $panel_vyrobce_name = $panel_vyrobce->post_title;
-    $panel_pocet = get_post_meta($balicek_id, 'defaultni_pocet_panelu', true);
+    $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
     $panel_popis = get_post_meta($panel_id, 'popis', true);
 
     $baterie = get_field('baterie', $balicek_id);
     $baterie_name = $baterie->post_title;
     $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
     $baterie_vyrobce_name = $baterie_vyrobce->post_title;
-    $baterie_pocet = get_post_meta($balicek_id, 'defaultni_pocet_baterii', true);
+    $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
     $baterie_popis = get_post_meta($baterie_id, 'popis', true);
     
     $stridac = get_field('stridac', $balicek_id);
     $stridac_name = $stridac->post_title;
     $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
     $stridac_vyrobce_name = $stridac_vyrobce->post_title;
-    $stridac_pocet = get_post_meta($balicek_id, 'defaultni_pocet_stridacu', true);
+    $stridac_pocet = get_post_meta($post_id, 'pocet_stridacu', true);
     $stridac_popis = get_post_meta($stridac_id, 'popis', true);
 
     $balicek_komponenty = get_field('komponenty', $balicek_id);
@@ -794,9 +794,9 @@ function download_technical_pdf() {
     $date = str_replace('-', '', $date);
     $smlouva_number = $date.$post_id;
 
-    $panel_n = get_post_meta( $balicek_id, 'defaultni_pocet_panelu', true);
-    $baterie_n = get_post_meta( $balicek_id, 'defaultni_pocet_baterii', true);
-    $stridac_n = get_post_meta( $balicek_id, 'defaultni_pocet_stridacu', true);
+    $panel_n = get_post_meta( $post_id, 'pocet_panelu', true);
+    $baterie_n = get_post_meta( $post_id, 'pocet_baterii', true);
+    $stridac_n = get_post_meta( $post_id, 'pocet_stridacu', true);
 
     $panel_id = get_post_meta($balicek_id, 'panel', true);
     $baterie_id = get_post_meta($balicek_id, 'baterie', true);
@@ -806,7 +806,7 @@ function download_technical_pdf() {
     $panel_name = $panel->post_title;
     $panel_vyrobce =  get_field('vyrobce', $panel_id);
     $panel_vyrobce_name = $panel_vyrobce->post_title;
-    $panel_pocet = get_post_meta($balicek_id, 'defaultni_pocet_panelu', true);
+    $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
     $panel_popis = get_post_meta($panel_id, 'popis', true);
     $panel_svt = get_post_meta($panel_id, 'svt', true);
     $panel_cena_nakup = get_post_meta($panel_id, 'cena_nakup', true);
@@ -816,7 +816,7 @@ function download_technical_pdf() {
     $baterie_name = $baterie->post_title;
     $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
     $baterie_vyrobce_name = $baterie_vyrobce->post_title;
-    $baterie_pocet = get_post_meta($balicek_id, 'defaultni_pocet_baterii', true);
+    $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
     $baterie_popis = get_post_meta($baterie_id, 'popis', true);
     $baterie_cena_nakup = get_post_meta($baterie_id, 'cena_nakup', true);
     $baterie_cena_celkem =  (int)$baterie_cena_nakup * (int)$baterie_n;
@@ -825,7 +825,7 @@ function download_technical_pdf() {
     $stridac_name = $stridac->post_title;
     $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
     $stridac_vyrobce_name = $stridac_vyrobce->post_title;
-    $stridac_pocet = get_post_meta($balicek_id, 'defaultni_pocet_stridacu', true);
+    $stridac_pocet = get_post_meta($post_id, 'pocet_stridacu', true);
     $stridac_popis = get_post_meta($stridac_id, 'popis', true);
     $stridac_svt = get_post_meta($stridac_id, 'svt', true);
     $stridac_cena_nakup = get_post_meta($stridac_id, 'cena_nakup', true);

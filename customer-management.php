@@ -329,8 +329,16 @@ function get_package_action() {
 		$tmp = (int)get_post_meta($value->ID, 'cena_prodej', true);
 		$komponenty_price += $tmp;
 	}
-	$package_price = $komponenty_price + (int)$balicy_panel_cena * (int)$balicy_panel_n + (int)$balicy_baterie_cena * (int)$balicy_baterie_n + (int)$balicy_stridac_cena * (int)$balicy_stridac_n;
-	echo json_encode(array('package_price' => $package_price));
+	// $package_price = $komponenty_price + (int)$balicy_panel_cena * (int)$balicy_panel_n + (int)$balicy_baterie_cena * (int)$balicy_baterie_n + (int)$balicy_stridac_cena * (int)$balicy_stridac_n;
+	$package_price = $komponenty_price;
+	echo json_encode(
+		array(
+			'package_price' => (int)$package_price,
+			'panel_price' => (int)$balicy_panel_cena,
+			'battery_price' => (int)$balicy_baterie_cena,
+			'inverter_price' => (int)$balicy_stridac_cena,
+		)
+	);
 	wp_die();
 }
 
