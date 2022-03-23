@@ -14,6 +14,8 @@ function register_script() {
 
 add_action('admin_enqueue_scripts', 'enqueue_style');
 function enqueue_style(){
+    wp_enqueue_script('custom_jquery_script', "https://code.jquery.com/jquery-3.2.1.min.js");
+	wp_enqueue_script('custom_popper_script', "https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js");
     wp_enqueue_script('customer_zakaznici_js');
     // wp_enqueue_script('my_jQuery');
     wp_enqueue_script('dataTables');
