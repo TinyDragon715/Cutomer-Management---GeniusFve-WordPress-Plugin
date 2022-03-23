@@ -7,29 +7,23 @@ function download_pdf() {
     $post_id = $_POST['selected_post_id'];
     $name = get_post_meta($post_id, 'zakaznik', true);
     $address = get_post_meta($post_id, 'adresa_instalace', true);
-    $datetime = get_post_meta($post_id, 'datum', true);
-    if (empty($datetime)) $datetime = get_the_date( 'Y-m-d H:i:s', $post_id);
     $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
     $dotaci_id = get_post_meta($post_id, 'vyberte_dotaci', true);
     $dotace_title = get_post_meta($dotaci_id, 'nazev', true);
     $cena_konstrukce = get_post_meta($post_id, 'cena_konstrukce', true);
-    
-    list($date, $time) = explode(" ", $datetime);
-    $date_pdf = str_replace('-', '.', $date);
-    $date = str_replace('-', '', $date);
-    $smlouva_number = $date.$post_id;
+    $smlouva_number = get_post_meta($post_id, 'c', true);
 
     $dotace_price = get_post_meta($post_id, 'dotace_vyse', true);
     if($dotace_price === ''){
         $dotace_price = 0;
     }
     $real_price = (int)get_post_meta($post_id, 'vlastni_investice_celkem', true);
-    $cena_bez_dph = $real_price / 1.21;
+    $cena_celkem = $real_price + (int)$dotace_price;
+    $cena_bez_dph = $cena_celkem / 1.15;
     $cena_bez_dph = (int)$cena_bez_dph;
-    $dph = (int)$cena_bez_dph * 0.21;
+    $dph = (int)$cena_bez_dph * 0.15;
     $dph = (int)$dph;
-    $cena_celkem = $cena_bez_dph + $dph;
-    $final_price = $cena_celkem - (int)$dotace_price;
+    $final_price = $real_price;
 
 
     $panel_id = get_post_meta($balicek_id, 'panel', true);
@@ -100,9 +94,9 @@ function download_pdf() {
     // O VÝKONU WP
     $pdf->SetFont('exo2b', '', 18);
     $pdf->SetTextColor(17, 115, 160);
-    $pdf->writeHTMLCell(0, 2, 211, 14, "{$panel_o_vykonu}", 0, 0, 0, false, '', false);
+    $pdf->writeHTMLCell(0, 2, 211 + (4 - min(strlen('' + $panel_o_vykonu), 4)) * 3, 14, "{$panel_o_vykonu}", 0, 0, 0, false, '', false);
     // KAPACITOU BATERIE KWH
-    $pdf->writeHTMLCell(0, 2, 81.5, 26, "{$baterie_kapacitou}", 0, 0, 0, false, '', false);
+    $pdf->writeHTMLCell(0, 2, 81.5 + (4 - min(strlen('' + $baterie_kapacitou), 4)) * 3, 26, "{$baterie_kapacitou}", 0, 0, 0, false, '', false);
     // Panel
     $pdf->SetFont('exo2light', '', 12);
     $pdf->SetTextColor(0, 0, 0);
@@ -196,15 +190,10 @@ add_action('admin_post_nopriv_download_contrac_pdf_action', 'download_contrac_pd
 function download_contrac_pdf() {
     $post_id = $_POST['selected_contrac_post_id'];
     $name = get_post_meta($post_id, 'zakaznik', true);
-    $datetime = get_post_meta($post_id, 'datum', true);
-    if (empty($datetime))
-        $datetime = get_the_date('Y-m-d H:i:s', $post_id);
     $email = get_post_meta($post_id, 'e-mail', true);
     $telefon = get_post_meta($post_id, 'telefon', true);
     $address = get_post_meta($post_id, 'adresa_instalace', true);
-    list($date, $time) = explode(" ", $datetime);
-    $date = str_replace('-', '', $date);
-    $customer_number = $date . $post_id;
+    $customer_number = get_post_meta($post_id, 'c', true);
 
     require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
@@ -356,206 +345,6 @@ $o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr = [
 add_action('admin_post_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
 add_action('admin_post_nopriv_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
 function download_zakaznic_pdf() {
-    // $nabidky_post_id = $_POST['selected_zakaznic_post_id'];
-    // $name = get_post_meta($nabidky_post_id, 'zakaznik', true);
-    // $post = get_page_by_title($name, OBJECT, 'zakaznik');
-    // $post_id = $post->ID;
-    // $formular_post_id = get_post_meta($post_id, 'formular', true);
-    // $email = get_post_meta($post_id, 'e-mail', true);
-    // $telefon = get_post_meta($post_id, 'telefon', true);
-    // $title = explode(' ', $name, 2);
-    // $kraj = get_post_meta($formular_post_id, '_field_63', true);
-    // for ($i = 1; $i <= count($GLOBALS["kraj_arr"]); $i++) {
-    //     if ($kraj == $GLOBALS["kraj_arr"][$i - 1]["wrong"]) {
-    //         $kraj = $GLOBALS["kraj_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $adresa_realizace = get_post_meta($formular_post_id, '_field_12', true);
-    // $druh_nemovitosti = get_post_meta($formular_post_id, '_field_13', true);
-    // for ($i = 1; $i <= count($GLOBALS["druh_nemovitosti_arr"]); $i++) {
-    //     if ($druh_nemovitosti == $GLOBALS["druh_nemovitosti_arr"][$i - 1]["wrong"]) {
-    //         $druh_nemovitosti = $GLOBALS["druh_nemovitosti_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $spotreba_domu1 = get_post_meta($formular_post_id, '_field_15', true);
-    // $spotreba_domu2 = get_post_meta($formular_post_id, '_field_16', true);
-    // $zpusob_vytapeni = unserialize(get_post_meta($formular_post_id, '_field_34', true));
-    // $tc_kwh = get_post_meta($formular_post_id, '_field_35', true);
-    // $elektrokotel_kwh = get_post_meta($formular_post_id, '_field_37', true);
-    // $pevna_paliva = get_post_meta($formular_post_id, '_field_38', true);
-    // $primotopy_kWh = get_post_meta($formular_post_id, '_field_39', true);
-    // $jine = get_post_meta($formular_post_id, '_field_40', true);
-    // $zpusob_ohrevu = get_post_meta($formular_post_id, '_field_30', true);
-    // for ($i = 1; $i <= count($GLOBALS["zpusob_ohrevu_arr"]); $i++) {
-    //     if ($zpusob_ohrevu == $GLOBALS["zpusob_ohrevu_arr"][$i - 1]["wrong"]) {
-    //         $zpusob_ohrevu = $GLOBALS["zpusob_ohrevu_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $bojler = get_post_meta($formular_post_id, '_field_41', true);
-    // $kombinace_uvedte_nize = get_post_meta($formular_post_id, '_field_42', true);
-    // $material = get_post_meta($formular_post_id, '_field_21', true);
-    // for ($i = 1; $i <= count($GLOBALS["material_arr"]); $i++) {
-    //     if ($material == $GLOBALS["material_arr"][$i - 1]["wrong"]) {
-    //         $material = $GLOBALS["material_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $umisteni = get_post_meta($formular_post_id, '_field_22', true);
-    // for ($i = 1; $i <= count($GLOBALS["umisteni_arr"]); $i++) {
-    //     if ($umisteni == $GLOBALS["umisteni_arr"][$i - 1]["wrong"]) {
-    //         $umisteni = $GLOBALS["umisteni_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $rozmer_strechy_pro_panely = get_post_meta($formular_post_id, '_field_24', true);
-    // $orientace = get_post_meta($formular_post_id, '_field_26', true);
-    // $klimatizace = get_post_meta($formular_post_id, '_field_44', true);
-    // $akvaria_teraria = get_post_meta($formular_post_id, '_field_45', true);
-    // $virivka = get_post_meta($formular_post_id, '_field_46', true);
-    // $sauna = get_post_meta($formular_post_id, '_field_47', true);
-    // $bazen_s_filtraci = get_post_meta($formular_post_id, '_field_48', true);
-    // $bazen_s_ohrevem_a_filtraci = get_post_meta($formular_post_id, '_field_49', true);
-    // $protiproud = get_post_meta($formular_post_id, '_field_50', true);
-    // $rekuperace = get_post_meta($formular_post_id, '_field_51', true);
-    // $tocive_motory_3f = get_post_meta($formular_post_id, '_field_52', true);
-    // $doplnkove_pozadavky_na_fve = get_post_meta($formular_post_id, '_field_23', true);
-    // $formular_byl_vyplnen_za_pomoci_telefonicke_podpory = get_post_meta($formular_post_id, '_field_57', true);
-    // for ($i = 1; $i <= count($GLOBALS["formular_byl_vyplnen_za_pomoci_telefonicke_podpory_arr"]); $i++) {
-    //     if ($formular_byl_vyplnen_za_pomoci_telefonicke_podpory == $GLOBALS["formular_byl_vyplnen_za_pomoci_telefonicke_podpory_arr"][$i - 1]["wrong"]) {
-    //         $formular_byl_vyplnen_za_pomoci_telefonicke_podpory = $GLOBALS["formular_byl_vyplnen_za_pomoci_telefonicke_podpory_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-    // $o_společnosti_genius_fve_jsem_se_dozvedel_pres = get_post_meta($formular_post_id, '_field_58', true);
-    // for ($i = 1; $i <= count($GLOBALS["o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr"]); $i++) {
-    //     if ($o_společnosti_genius_fve_jsem_se_dozvedel_pres == $GLOBALS["o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr"][$i - 1]["wrong"]) {
-    //         $o_společnosti_genius_fve_jsem_se_dozvedel_pres = $GLOBALS["o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr"][$i - 1]["right"];
-    //         break;
-    //     };
-    // }
-
-    // $datetime = get_post_meta($post_id, 'datum', true);
-    // $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
-    // list($date, $time) = explode(" ", $datetime);
-    // $date_pdf = str_replace('-', '.', $date);
-    // $date = str_replace('-', '', $date);
-    // $smlouva_number = $date.$post_id;
-
-    // require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
-    // require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
-    // $pdf = new \setasign\Fpdi\Tcpdf\Fpdi('P','mm',array(250,350));
-
-    // $pdf->setCellHeightRatio(2);
-
-    // $pdf->AddPage();
-    // $pdf->SetFont('exo2b', '', 11);
-    // $content = <<<EOD
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="3">Jméno: {$title[0]}</td>
-    //         <td colspan="3">Příjmení: {$title[1]}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="3">Email: {$email}</td>
-    //         <td colspan="3">Telefon: {$telefon}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="6">Kraj: {$kraj}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="3">Přesná adresa instalace: {$adresa_realizace}</td>
-    //         <td colspan="3">Druh nemovitosti: {$druh_nemovitosti}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <p style="color: #1173a0">SPOTŘEBA DOMU</p>
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="3">Spotřeba domu [MWh/rok]: {$spotreba_domu1}</td>
-    //         <td colspan="3">Spotřeba domu [Kč/měsíc]: {$spotreba_domu2}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <p style="color: #1173a0">TOPENÍ</p>
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="6">Způsob vytápění: {$zpusob_vytapeni}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="2">TČ [kWh]: {$tc_kwh}</td>
-    //         <td colspan="2">Elektrokotel [kWh]: {$elektrokotel_kwh}</td>
-    //         <td colspan="2">Pevná paliva: {$pevna_paliva}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="2">Přímotopy [kWh]: {$primotopy_kWh}</td>
-    //         <td colspan="2">Jiné: {$jine}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <p style="color: #1173a0">TEPLÁ VODA</p>
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="6">Způsob ohřevu: {$zpusob_ohrevu}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="6">Bojler: {$bojler}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="6">Kombinace? Uveďte níže: {$kombinace_uvedte_nize}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <p style="color: #1173a0">STŘECHA</p>
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="3">Materiál: {$material}</td>
-    //         <td colspan="3">Umístění: {$umisteni}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="3">Rozměr střechy pro panely [m x m]: {$rozmer_strechy_pro_panely}</td>
-    //         <td colspan="3">Orientace (ve stupních, popř. J, JZ, JV, V, Z): {$orientace}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <p style="color: #1173a0">SPOTŘEBIČE</p>
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="2">Klimatizace: {$klimatizace}</td>
-    //         <td colspan="2">Akvária, terária: {$akvaria_teraria}</td>
-    //         <td colspan="2">Vířivka: {$virivka}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="2">Sauna: {$sauna}</td>
-    //         <td colspan="2">Bazén s filtrací: {$bazen_s_filtraci}</td>
-    //         <td colspan="2">Bazén s ohřevem a filtrací: {$bazen_s_ohrevem_a_filtraci}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="2">Protiproud: {$protiproud}</td>
-    //         <td colspan="2">Rekuperace: {$rekuperace}</td>
-    //         <td colspan="2">Točivé motory 3F: {$tocive_motory_3f}</td>
-    //     </tr>
-    // </table>
-    // <hr style="border-top: dotted 1px;" />
-    // <table cellpadding="2" cellspacing="5">
-    //     <tr nobr="true">
-    //         <td colspan="6">Doplňkové požadavky na FVE: {$doplnkove_pozadavky_na_fve}</td>
-    //     </tr>
-    //     <tr nobr="true">
-    //         <td colspan="3">Formulář byl vyplněn za pomoci telefonické podpory: {$formular_byl_vyplnen_za_pomoci_telefonicke_podpory}</td>
-    //         <td colspan="3">O společnosti Genius FVE jsem se dozvěděl přes: {$o_společnosti_genius_fve_jsem_se_dozvedel_pres}</td>
-    //     </tr>
-    // </table>
-    // EOD;
-    // $pdf->writeHTML($content);
-
-    // ob_end_clean();
-    // $file_name = $name.'_zakaznic.pdf';
-    // $pdf->Output($file_name, 'D');
-    // exit;
-
     $nabidky_post_id = $_POST['selected_zakaznic_post_id'];
     $name = get_post_meta($nabidky_post_id, 'zakaznik', true);
     $post = get_page_by_title($name, OBJECT, 'zakaznik');
@@ -589,12 +378,7 @@ function download_zakaznic_pdf() {
         }
     }
 
-    $datetime = get_post_meta($nabidky_post_id, 'datum', true);
-    if (empty($datetime))
-        $datetime = get_the_date('Y-m-d H:i:s', $nabidky_post_id);
-    list($date1, $time) = explode(" ", $datetime);
-    $date1 = str_replace('-', '', $date1);
-    $smlouva_number = $date1 . $nabidky_post_id;
+    $smlouva_number = get_post_meta($nabidky_post_id, 'c', true);
 
     require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
@@ -797,14 +581,8 @@ add_action('admin_post_nopriv_download_technical_pdf_action', 'download_technica
 function download_technical_pdf() {
     $post_id = $_POST['selected_technical_post_id'];
     $name = get_post_meta($post_id, 'zakaznik', true);
-    $datetime = get_post_meta($post_id, 'datum', true);
-    if (empty($datetime))
-        $datetime = get_the_date('Y-m-d H:i:s', $post_id);
     $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
-    list($date, $time) = explode(" ", $datetime);
-    $date_pdf = str_replace('-', '.', $date);
-    $date = str_replace('-', '', $date);
-    $smlouva_number = $date.$post_id;
+    $smlouva_number = get_post_meta($post_id, 'c', true);
 
     $panel_n = get_post_meta( $post_id, 'pocet_panelu', true);
     $baterie_n = get_post_meta( $post_id, 'pocet_baterii', true);
@@ -843,12 +621,16 @@ function download_technical_pdf() {
     $stridac_cena_nakup = get_post_meta($stridac_id, 'cena_nakup', true);
     $stridac_cena_celkem = (int)$stridac_cena_nakup * (int)$stridac_n;
 
+    $dotace_price = get_post_meta($post_id, 'dotace_vyse', true);
+    if($dotace_price === ''){
+        $dotace_price = 0;
+    }
     $real_price = (int)get_post_meta($post_id, 'vlastni_investice_celkem', true);
-    $cena_bez_dph = $real_price / 1.21;
+    $cena_celkem = $real_price + (int)$dotace_price;
+    $cena_bez_dph = $cena_celkem / 1.15;
     $cena_bez_dph = (int)$cena_bez_dph;
-    $dph = (int)$cena_bez_dph * 0.21;
+    $dph = (int)$cena_bez_dph * 0.15;
     $dph = (int)$dph;
-    $cena_celkem = $cena_bez_dph + $dph;
 
     $balicek_komponenty = get_field('komponenty', $balicek_id);
 

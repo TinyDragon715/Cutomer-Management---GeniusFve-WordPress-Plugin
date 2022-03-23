@@ -117,13 +117,7 @@ function manage_nabidky_columns($column, $post_id) {
 
 	switch ($column) {
 		case 'c':
-            $datetime = get_post_meta($post_id, 'datum', true);
-            if (empty($datetime))
-                $datetime = get_the_date('Y-m-d H:i:s', $post_id);
-            
-            list($date, $time) = explode(" ", $datetime);
-            $date = str_replace('-', '', $date);
-            $value = $date . $post_id;
+            $value = get_post_meta($post_id, 'c', true);
 
 			if (empty($value)) echo __('Unknown');
             else printf( __('%s'), $value);

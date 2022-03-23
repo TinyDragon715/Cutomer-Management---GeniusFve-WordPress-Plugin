@@ -264,6 +264,12 @@ function get_nabidky_action() {
 	$customer_id = intval( $_POST['customer_id']);
 	$post = get_post($customer_id);
 
+	$datetime = date('Y-m-d H:i:s');
+	
+	list($date, $time) = explode(" ", $datetime);
+	$time = str_replace(':', '', $time);
+	$value = $customer_id . $time;
+
 	$email = get_post_meta($customer_id, 'e-mail', true);
 	$telefon = get_post_meta($customer_id, 'telefon', true);
 	$adresa_realizace = get_post_meta($customer_id, 'adresa_realizace', true);
@@ -291,6 +297,7 @@ function get_nabidky_action() {
 	echo json_encode(
 		array(
 			'title' => $post->post_title,
+			'cislo' => $value,
 			'datum' => $post->post_date_gmt,
 			'email' => $email,
 			'telefon' => $telefon,
