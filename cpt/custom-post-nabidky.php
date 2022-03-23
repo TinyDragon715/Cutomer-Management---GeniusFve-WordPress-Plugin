@@ -5,29 +5,37 @@ function admin_violation_pdf_form() {
     global $pagenow;
 
     if (( $pagenow == 'edit.php' ) && ($_GET['post_type'] == 'nabidky')) {
-        echo '<form id="generate_pdf_form" method="post" target="generate_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
+        echo '
+            <form id="generate_pdf_form" method="post" target="generate_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
                 <input name="action" type="hidden" value="download_pdf_action">
                 <input type="hidden" name="selected_post_id" id="selected_post_id" />
             </form>
-            <iframe name="generate_pdf_frame" id="generate_pdf_frame" style="display: none;"></iframe>';
+            <iframe name="generate_pdf_frame" id="generate_pdf_frame" style="display: none;"></iframe>
+        ';
 
-        echo '<form id="generate_contrac_pdf_form" method="post" target="generate_contrac_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
-        <input name="action" type="hidden" value="download_contrac_pdf_action">
-        <input type="hidden" name="selected_contrac_post_id" id="selected_contrac_post_id" />
-        </form>
-        <iframe name="generate_contrac_pdf_frame" id="generate_contrac_pdf_frame" style="display: none;"></iframe>';
+        echo '
+            <form id="generate_contrac_pdf_form" method="post" target="generate_contrac_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
+                <input name="action" type="hidden" value="download_contrac_pdf_action">
+                <input type="hidden" name="selected_contrac_post_id" id="selected_contrac_post_id" />
+            </form>
+            <iframe name="generate_contrac_pdf_frame" id="generate_contrac_pdf_frame" style="display: none;"></iframe>
+        ';
 
-        echo '<form id="generate_zakaznic_pdf_form" method="post" target="generate_zakaznic_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
-        <input name="action" type="hidden" value="download_zakaznic_pdf_action">
-        <input type="hidden" name="selected_zakaznic_post_id" id="selected_zakaznic_post_id" />
-        </form>
-        <iframe name="generate_zakaznic_pdf_frame" id="generate_zakaznic_pdf_frame" style="display: none;"></iframe>';
+        echo '
+            <form id="generate_zakaznic_pdf_form" method="post" target="generate_zakaznic_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
+                <input name="action" type="hidden" value="download_zakaznic_pdf_action">
+                <input type="hidden" name="selected_zakaznic_post_id" id="selected_zakaznic_post_id" />
+            </form>
+            <iframe name="generate_zakaznic_pdf_frame" id="generate_zakaznic_pdf_frame" style="display: none;"></iframe>
+        ';
 
-        echo '<form id="generate_technical_pdf_form" method="post" target="generate_technical_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
-        <input name="action" type="hidden" value="download_technical_pdf_action">
-        <input type="hidden" name="selected_technical_post_id" id="selected_technical_post_id" />
-        </form>
-        <iframe name="generate_technical_pdf_frame" id="generate_technical_pdf_frame" style="display: none;"></iframe>';
+        echo '
+            <form id="generate_technical_pdf_form" method="post" target="generate_technical_pdf_frame" action="'.esc_url(admin_url('admin-post.php')).'">
+                <input name="action" type="hidden" value="download_technical_pdf_action">
+                <input type="hidden" name="selected_technical_post_id" id="selected_technical_post_id" />
+            </form>
+            <iframe name="generate_technical_pdf_frame" id="generate_technical_pdf_frame" style="display: none;"></iframe>
+        ';
     }
 }
 add_action('admin_notices', 'admin_violation_pdf_form');
@@ -107,23 +115,28 @@ add_action( 'manage_nabidky_posts_custom_column', 'manage_nabidky_columns', 10, 
 function manage_nabidky_columns($column, $post_id) {
 	global $post;
 
-	switch( $column ) {
-		case 'c' :
-            $value = get_post_meta($post_id, 'c', true);
+	switch ($column) {
+		case 'c':
+            $datetime = get_post_meta($post_id, 'datum', true);
+            if (empty($datetime))
+                $datetime = get_the_date('Y-m-d H:i:s', $post_id);
+            
+            list($date, $time) = explode(" ", $datetime);
+            $date = str_replace('-', '', $date);
+            $value = $date . $post_id;
 
 			if (empty($value)) echo __('Unknown');
             else printf( __('%s'), $value);
 
             break;
-		case 'zakaznik' :
+		case 'zakaznik':
             $value = get_field("zakaznik", $post_id);
 
 			if (empty($value)) echo __('Unknown');
             else printf( __('%s'), $value);
 
             break;
-        case 'datum' :
-
+        case 'datum':
             $value = get_post_meta($post_id, 'datum', true);
 
 			if (empty($value)) echo __(get_the_date( 'Y-m-d H:i:s' )); 

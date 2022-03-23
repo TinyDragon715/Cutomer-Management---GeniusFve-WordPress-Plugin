@@ -190,6 +190,8 @@ function download_contrac_pdf() {
     $post_id = $_POST['selected_contrac_post_id'];
     $name = get_post_meta($post_id, 'zakaznik', true);
     $datetime = get_post_meta($post_id, 'datum', true);
+    if (empty($datetime))
+        $datetime = get_the_date('Y-m-d H:i:s', $post_id);
     $email = get_post_meta($post_id, 'e-mail', true);
     $telefon = get_post_meta($post_id, 'telefon', true);
     $address = get_post_meta($post_id, 'adresa_instalace', true);
@@ -581,6 +583,8 @@ function download_zakaznic_pdf() {
     }
 
     $datetime = get_post_meta($nabidky_post_id, 'datum', true);
+    if (empty($datetime))
+        $datetime = get_the_date('Y-m-d H:i:s', $nabidky_post_id);
     list($date1, $time) = explode(" ", $datetime);
     $date1 = str_replace('-', '', $date1);
     $smlouva_number = $date1 . $nabidky_post_id;
@@ -787,7 +791,8 @@ function download_technical_pdf() {
     $post_id = $_POST['selected_technical_post_id'];
     $name = get_post_meta($post_id, 'zakaznik', true);
     $datetime = get_post_meta($post_id, 'datum', true);
-    if (empty($datetime)) $datetime = get_the_date( 'Y-m-d H:i:s', $post_id);
+    if (empty($datetime))
+        $datetime = get_the_date('Y-m-d H:i:s', $post_id);
     $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
     list($date, $time) = explode(" ", $datetime);
     $date_pdf = str_replace('-', '.', $date);

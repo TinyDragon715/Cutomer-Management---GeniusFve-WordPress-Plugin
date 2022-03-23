@@ -1,5 +1,4 @@
 ﻿<?php
- 
 /**
  * Plugin Name: Customer Mangement
  * Plugin URI: https://geniusfve.cz
@@ -25,7 +24,6 @@ function wpdocs_register_my_custom_menu_page(){
 add_action( 'admin_menu', 'wpdocs_register_my_custom_menu_page' );
 
 // add custom post types
-// require_once plugin_dir_path(__FILE__) . 'cpt/custom-post-hotove.php';
 require_once plugin_dir_path(__FILE__) . 'cpt/custom-post-nabidky.php';
 require_once plugin_dir_path(__FILE__) . 'cpt/custom-post-zakaznici.php';
 require_once plugin_dir_path(__FILE__) . 'cpt/custom-post-stav.php';
