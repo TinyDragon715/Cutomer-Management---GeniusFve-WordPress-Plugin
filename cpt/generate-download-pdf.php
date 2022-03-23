@@ -33,23 +33,26 @@ function download_pdf() {
 
 
     $panel_id = get_post_meta($balicek_id, 'panel', true);
-    $baterie_id = get_post_meta($balicek_id, 'baterie', true);
-    $stridac_id = get_post_meta($balicek_id, 'stridac', true);
-    
     $panel = get_field('panel', $balicek_id);
     $panel_name = $panel->post_title;
     $panel_vyrobce =  get_field('vyrobce', $panel_id);
     $panel_vyrobce_name = $panel_vyrobce->post_title;
     $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
+    $panel_vykon = get_post_meta($panel_id, 'vykon', true);
     $panel_popis = get_post_meta($panel_id, 'popis', true);
+    $panel_o_vykonu = $panel_vykon * $panel_pocet;
 
+    $baterie_id = get_post_meta($balicek_id, 'baterie', true);
     $baterie = get_field('baterie', $balicek_id);
     $baterie_name = $baterie->post_title;
     $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
     $baterie_vyrobce_name = $baterie_vyrobce->post_title;
     $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
+    $baterie_kapacita = get_post_meta($baterie_id, 'kapacita', true);
     $baterie_popis = get_post_meta($baterie_id, 'popis', true);
+    $baterie_kapacitou = $baterie_kapacita * $baterie_pocet;
     
+    $stridac_id = get_post_meta($balicek_id, 'stridac', true);
     $stridac = get_field('stridac', $balicek_id);
     $stridac_name = $stridac->post_title;
     $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
@@ -67,24 +70,20 @@ function download_pdf() {
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
     $pdf = new \setasign\Fpdi\Tcpdf\Fpdi('P','mm',array(250,350));
     $pagecount = $pdf->setSourceFile('templete1.pdf');
-
    
     $tplidx = $pdf->importPage(1);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
     
-    
-    
+    // Page 1.
     $pdf->SetTextColor(17, 115, 160);
     $pdf->SetFont('exo2b', '', 12);
     $pdf->writeHTMLCell(0, 2, 9, 92, "{$name}", 0, 0, 0, false, '', false);
     $date = date_create($name);
 
-
     $pdf->SetTextColor(17, 115, 160);
     $pdf->SetFont('exo2b', '', 14);
     $pdf->writeHTMLCell(0, 2, 140, 18, "{$smlouva_number}", 0, 0, 0, false, '', false);
-
 
     $pdf->SetTextColor(17, 115, 160);
     $pdf->writeHTMLCell(0, 2, 9, 115, "{$address}", 0, 0, 0, false, '', false);
@@ -94,27 +93,35 @@ function download_pdf() {
     $pdf->writeHTMLCell(0, 2, 9, 137, "{$date_pdf}", 0, 0, 0, false, '', false);
     $date = date_create($date_pdf);
 
+    // Page 2.
     $tplidx = $pdf->importPage(2);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-
+    // O VÝKONU WP
+    $pdf->SetFont('exo2b', '', 18);
+    $pdf->SetTextColor(17, 115, 160);
+    $pdf->writeHTMLCell(0, 2, 211, 14, "{$panel_o_vykonu}", 0, 0, 0, false, '', false);
+    // KAPACITOU BATERIE KWH
+    $pdf->writeHTMLCell(0, 2, 81.5, 26, "{$baterie_kapacitou}", 0, 0, 0, false, '', false);
+    // Panel
     $pdf->SetFont('exo2light', '', 12);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 34.5, 70, "{$panel_vyrobce_name} - {$panel_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 70, "{$panel_pocet}", 0, 0, 0, false, '', false);
+    // Baterie
     $pdf->writeHTMLCell(0, 2, 34.5, 82, "{$baterie_vyrobce_name} - {$baterie_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 82, "{$baterie_pocet}", 0, 0, 0, true, '', false);
+    // Stridac
     $pdf->writeHTMLCell(0, 2, 34.5, 94, "{$stridac_vyrobce_name} - {$stridac_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 94, "{$stridac_pocet}", 0, 0, 0, false, '', false);
-
-    $i=0;
+    // Komponenty
+    $i = 0;
     foreach ($balicek_komponenty as $key => $value) {
-        $y = $i* 12 + 106;
+        $y = ($i++) * 12 + 106;
+        // Komponenty-name
         $pdf->writeHTMLCell(0, 2, 34.5, $y, "{$value->post_title}", 0, 0, 0, false, '', false);
-        
-        $pdf->SetTextColor(0, 0, 0);
+        // Komponenty-pocet
         $pdf->writeHTMLCell(0, 2, 220, $y, "1", 0, 0, 0, false, '', false);
-        $i++;
     }
 
     if($cena_konstrukce !== '0' || $cena_konstrukce === ''){
