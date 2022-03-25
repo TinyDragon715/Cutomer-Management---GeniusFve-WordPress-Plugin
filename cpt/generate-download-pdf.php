@@ -2,36 +2,39 @@
 // download pdf
 add_action('admin_post_download_pdf_action', 'download_pdf');
 add_action('admin_post_nopriv_download_pdf_action', 'download_pdf');
-
 function download_pdf() {
-    $post_id = $_POST['selected_post_id'];
-    $name = get_post_meta($post_id, 'zakaznik', true);
-    $address = get_post_meta($post_id, 'adresa_instalace', true);
-    $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
-    $dotaci_id = get_post_meta($post_id, 'vyberte_dotaci', true);
-    $dotace_title = get_post_meta($dotaci_id, 'nazev', true);
-    $cena_konstrukce = get_post_meta($post_id, 'cena_konstrukce', true);
-    $smlouva_number = get_post_meta($post_id, 'c', true);
+    $nabidky_id = $_POST['selected_post_id'];
 
-    $dotace_price = get_post_meta($post_id, 'dotace_vyse', true);
+    $offer_id       = get_post_meta($nabidky_id, 'c', true);
+    $client_name    = get_post_meta($nabidky_id, 'zakaznik', true);
+    $address        = get_post_meta($nabidky_id, 'adresa_instalace', true);
+    $valid_date     = get_post_meta($nabidky_id, 'datum', true);
+    $valid_date = get_the_date('Y-m-d', $nabidky_id);
+    $valid_date = date('d.m.Y', strtotime("-1 day", strtotime("+1 month", strtotime($valid_date))));
+
+    $balicek_id = get_post_meta($nabidky_id, 'vyberte_balicek', true);
+    $dotaci_id = get_post_meta($nabidky_id, 'vyberte_dotaci', true);
+    $dotace_title = get_post_meta($dotaci_id, 'nazev', true);
+    $cena_konstrukce = get_post_meta($nabidky_id, 'cena_konstrukce', true);
+    
+    $dotace_price = get_post_meta($nabidky_id, 'dotace_vyse', true);
     if($dotace_price === ''){
         $dotace_price = 0;
     }
-    $real_price = (int)get_post_meta($post_id, 'vlastni_investice_celkem', true);
+    $real_price = (int)get_post_meta($nabidky_id, 'vlastni_investice_celkem', true);
     $cena_celkem = $real_price + (int)$dotace_price;
-    $cena_bez_dph = $cena_celkem / 1.15;
+    $cena_bez_dph = floatval($cena_celkem) / 1.15;
+    $cena_bez_dph = round($cena_bez_dph, 0);
     $cena_bez_dph = (int)$cena_bez_dph;
-    $dph = (int)$cena_bez_dph * 0.15;
-    $dph = (int)$dph;
+    $dph = $cena_celkem - $cena_bez_dph;
     $final_price = $real_price;
-
 
     $panel_id = get_post_meta($balicek_id, 'panel', true);
     $panel = get_field('panel', $balicek_id);
     $panel_name = $panel->post_title;
     $panel_vyrobce =  get_field('vyrobce', $panel_id);
     $panel_vyrobce_name = $panel_vyrobce->post_title;
-    $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
+    $panel_pocet = get_post_meta($nabidky_id, 'pocet_panelu', true);
     $panel_vykon = get_post_meta($panel_id, 'vykon', true);
     $panel_popis = get_post_meta($panel_id, 'popis', true);
     $panel_o_vykonu = $panel_vykon * $panel_pocet;
@@ -41,7 +44,7 @@ function download_pdf() {
     $baterie_name = $baterie->post_title;
     $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
     $baterie_vyrobce_name = $baterie_vyrobce->post_title;
-    $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
+    $baterie_pocet = get_post_meta($nabidky_id, 'pocet_baterii', true);
     $baterie_kapacita = get_post_meta($baterie_id, 'kapacita', true);
     $baterie_popis = get_post_meta($baterie_id, 'popis', true);
     $baterie_kapacitou = $baterie_kapacita * $baterie_pocet;
@@ -51,81 +54,88 @@ function download_pdf() {
     $stridac_name = $stridac->post_title;
     $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
     $stridac_vyrobce_name = $stridac_vyrobce->post_title;
-    $stridac_pocet = get_post_meta($post_id, 'pocet_stridacu', true);
+    $stridac_pocet = get_post_meta($nabidky_id, 'pocet_stridacu', true);
     $stridac_popis = get_post_meta($stridac_id, 'popis', true);
 
     $balicek_komponenty = get_field('komponenty', $balicek_id);
     
-    // $balicek = get_field('vyberte_balicek', $post_id);
-    // $balicek_name = $balicek->post_title;
-
-    // $name = iconv('utf-8', 'cp1250', $name);
     require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
     $pdf = new \setasign\Fpdi\Tcpdf\Fpdi('P','mm',array(250,350));
-    $pagecount = $pdf->setSourceFile('templete1.pdf');
-   
+    $pdf->setSourceFile('templete1.pdf');
+
+    // Page 1.
     $tplidx = $pdf->importPage(1);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-    
-    // Page 1.
+    // KLIENT
     $pdf->SetTextColor(17, 115, 160);
     $pdf->SetFont('exo2b', '', 12);
-    $pdf->writeHTMLCell(0, 2, 9, 92, "{$name}", 0, 0, 0, false, '', false);
-    $date = date_create($name);
-
-    $pdf->SetTextColor(17, 115, 160);
+    $pdf->writeHTMLCell(0, 2, 9, 92, "{$client_name}", 0, 0, 0, false, '', false);
+    // ČÍSLO NABÍDKY
     $pdf->SetFont('exo2b', '', 14);
-    $pdf->writeHTMLCell(0, 2, 140, 18, "{$smlouva_number}", 0, 0, 0, false, '', false);
-
-    $pdf->SetTextColor(17, 115, 160);
+    $pdf->writeHTMLCell(0, 2, 140, 18, "{$offer_id}", 0, 0, 0, false, '', false);
+    // ADRESA
     $pdf->writeHTMLCell(0, 2, 9, 115, "{$address}", 0, 0, 0, false, '', false);
-    $date = date_create($address);
-
-    $pdf->SetTextColor(17, 115, 160);
-    $pdf->writeHTMLCell(0, 2, 9, 137, "{$date_pdf}", 0, 0, 0, false, '', false);
-    $date = date_create($date_pdf);
+    // PLATNOST DO
+    $pdf->writeHTMLCell(0, 2, 9, 137, "{$valid_date}", 0, 0, 0, false, '', false);
 
     // Page 2.
     $tplidx = $pdf->importPage(2);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-    // O VÝKONU WP
-    $pdf->SetFont('exo2b', '', 18);
+
+    $pdf->SetFont('exo2b', '', 17);
     $pdf->SetTextColor(17, 115, 160);
-    $pdf->writeHTMLCell(0, 2, 211 + (4 - min(strlen('' + $panel_o_vykonu), 4)) * 3, 14, "{$panel_o_vykonu}", 0, 0, 0, false, '', false);
+    // O VÝKONU WP
+    $pdf->writeHTMLCell(0, 2, 182, 13, "O VÝKONU {$panel_o_vykonu}WP", 0, 0, 0, false, '', false);
     // KAPACITOU BATERIE KWH
-    $pdf->writeHTMLCell(0, 2, 81.5 + (4 - min(strlen('' + $baterie_kapacitou), 4)) * 3, 26, "{$baterie_kapacitou}", 0, 0, 0, false, '', false);
-    // Panel
+    $pdf->writeHTMLCell(0, 2, 26, 24.5, "KAPACITOU BATERIE {$baterie_kapacitou}KWH", 0, 0, 0, false, '', false);
+
     $pdf->SetFont('exo2light', '', 12);
     $pdf->SetTextColor(0, 0, 0);
+    // Panel
+    $pdf->writeHTMLCell(0, 2, 15, 70, "{$panel_id}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 34.5, 70, "{$panel_vyrobce_name} - {$panel_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 70, "{$panel_pocet}", 0, 0, 0, false, '', false);
     // Baterie
+    $pdf->writeHTMLCell(0, 2, 15, 82, "{$baterie_id}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 34.5, 82, "{$baterie_vyrobce_name} - {$baterie_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 82, "{$baterie_pocet}", 0, 0, 0, true, '', false);
     // Stridac
+    $pdf->writeHTMLCell(0, 2, 15, 94, "{$stridac_id}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 34.5, 94, "{$stridac_vyrobce_name} - {$stridac_name}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, 94, "{$stridac_pocet}", 0, 0, 0, false, '', false);
     // Komponenty
     $i = 0;
     foreach ($balicek_komponenty as $key => $value) {
         $y = ($i++) * 12 + 106;
+        // Komponenty-id
+        $pdf->SetFont('exo2b', '', 12);
+        $pdf->writeHTMLCell(0, 2, 15, $y, "{$value->ID}", 0, 0, 0, false, '', false);
         // Komponenty-name
+        $pdf->SetFont('exo2light', '', 12);
         $pdf->writeHTMLCell(0, 2, 34.5, $y, "{$value->post_title}", 0, 0, 0, false, '', false);
         // Komponenty-pocet
         $pdf->writeHTMLCell(0, 2, 220, $y, "1", 0, 0, 0, false, '', false);
     }
-
+    // Cena Konstrukce
     if($cena_konstrukce !== '0' || $cena_konstrukce === ''){
+        $pdf->writeHTMLCell(0, 2, 18, $y + 12, "22", 0, 0, 0, false, '', false);
         $pdf->writeHTMLCell(0, 2, 34.5, $y + 12, "Střecha - konstrukce", 0, 0, 0, false, '', false);   
         $pdf->writeHTMLCell(0, 2, 220, $y + 12, "1", 0, 0, 0, false, '', false);
     }
-
+    // Dotace
+    $pdf->writeHTMLCell(0, 2, 19, $y + 24, "#", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 34.5, $y + 24, "Dotace celkem: {$dotace_title}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 220, $y + 24, "1", 0, 0, 0, false, '', false);
 
+    $cena_bez_dph = number_format($cena_bez_dph, 0, ".", " ");
+    $dph          = number_format($dph, 0, ".", " ");
+    $cena_celkem  = number_format($cena_celkem,  0, ".", " ");
+    $dotace_price = number_format($dotace_price, 0, ".", " ");
+    $final_price  = number_format($final_price, 0, ".", " ");
+    // Result
     $pdf->SetFont('exo2b', '', 12);
     $pdf->SetTextColor(255, 255, 255);
     $pdf->writeHTMLCell(210, 0, 205, 258.7, "{$cena_bez_dph} Kč", 0, 0, 0, true, '', false);
@@ -135,42 +145,40 @@ function download_pdf() {
     $pdf->SetFont('exo2b', '', 13);
     $pdf->writeHTMLCell(210, 0, 203, 302, "{$final_price} Kč", 0, 0, 0, true, '', false);
     
+    // Page 3.
     $tplidx = $pdf->importPage(3);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-
+    
     $pdf->SetTextColor(17, 115,160);
+    // Panel
     $pdf->SetFont('exo2b', '', 14);
     $pdf->writeHTMLCell(210, 0, 20, 48, "Solární panely: {$panel_vyrobce_name} - {$panel_name}", 0, 0, 0, true, '', false);
-
     $pdf->SetFont('exo2b', '', 12);
     $pdf->writeHTMLCell(210, 0, 20, 58, "{$panel_popis}", 0, 0, 0, true, '', false);
-
+    // Inverter
     $pdf->SetFont('exo2b', '', 14); 
     $pdf->writeHTMLCell(210, 0, 20, 100, "Střídač: {$stridac_vyrobce_name} - {$stridac_name}", 0, 0, 0, true, '', false);
-
     $pdf->SetFont('exo2b', '', 12);
     $pdf->writeHTMLCell(210, 0, 20, 110, "{$stridac_popis}", 0, 0, 0, true, '', false);
-    
-
+    // Battery
     $pdf->SetFont('exo2b', '', 14);
     $pdf->writeHTMLCell(210, 0, 20, 152, "Baterie: {$baterie_vyrobce_name} - {$baterie_name}", 0, 0, 0, true, '', false);
-
     $pdf->SetFont('exo2b', '', 12);
     $pdf->writeHTMLCell(210, 0, 20, 162, "{$baterie_popis}", 0, 0, 0, true, '', false);
 
-    
-
+    // Page 4.
     $tplidx = $pdf->importPage(4);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
 
+    // Page 5.
     $tplidx = $pdf->importPage(5);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
     
     ob_end_clean();
-    $file_name = $name.'.pdf';
+    $file_name = $client_name . '.pdf';
     $pdf->Output($file_name, 'D');    
     exit;
 }
@@ -580,8 +588,9 @@ add_action('admin_post_download_technical_pdf_action', 'download_technical_pdf')
 add_action('admin_post_nopriv_download_technical_pdf_action', 'download_technical_pdf');
 function download_technical_pdf() {
     $post_id = $_POST['selected_technical_post_id'];
-    $name = get_post_meta($post_id, 'zakaznik', true);
-    $balicek_id = get_post_meta($post_id, 'vyberte_balicek', true);
+
+    $name           = get_post_meta($post_id, 'zakaznik', true);
+    $balicek_id     = get_post_meta($post_id, 'vyberte_balicek', true);
     $smlouva_number = get_post_meta($post_id, 'c', true);
 
     $panel_n = get_post_meta( $post_id, 'pocet_panelu', true);
@@ -627,18 +636,19 @@ function download_technical_pdf() {
     }
     $real_price = (int)get_post_meta($post_id, 'vlastni_investice_celkem', true);
     $cena_celkem = $real_price + (int)$dotace_price;
-    $cena_bez_dph = $cena_celkem / 1.15;
+    $cena_bez_dph = floatval($cena_celkem) / 1.15;
+    $cena_bez_dph = round($cena_bez_dph, 0);
     $cena_bez_dph = (int)$cena_bez_dph;
-    $dph = (int)$cena_bez_dph * 0.15;
-    $dph = (int)$dph;
+    $dph = $cena_celkem - $cena_bez_dph;
 
     $balicek_komponenty = get_field('komponenty', $balicek_id);
 
     require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
     $pdf = new \setasign\Fpdi\Tcpdf\Fpdi('P','mm',array(250,350));
-    $pagecount = $pdf->setSourceFile('templete4.pdf');
+    $pdf->setSourceFile('templete4.pdf');
 
+    // Page 1.
     $tplidx = $pdf->importPage(1);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
@@ -646,65 +656,62 @@ function download_technical_pdf() {
     $pdf->SetTextColor(0, 0 , 0);
     $pdf->SetFont('exo2b', '', 14);
     $pdf->writeHTMLCell(0, 2, 200, 18, "{$smlouva_number}", 0, 0, 0, false, '', false);
-    $date = date_create($smlouva_number);
 
+    $panel_cena_nakup  = number_format($panel_cena_nakup, 0, ".", " ");
+    $panel_cena_celkem = number_format($panel_cena_celkem, 0, ".", " ");
     $pdf->SetFont('exo2light', '', 10);
-    $pdf->SetTextColor(0, 0, 0);
-    $pdf->writeHTMLCell(0, 2, 12, 75, "{$content}", 0, 0, 0, false, '', false);
+    $pdf->writeHTMLCell(0, 2, 12, 75, "{$panel_vyrobce_name} - {$panel_name}", 0, 0, 0, false, '', false);
     $pdf->SetFont('exo2light', '', 12);
-    $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 120, 75, "{$panel_pocet}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 137, 75, "{$panel_svt}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 175, 75, "{$panel_cena_nakup} Kč", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 210, 75, "{$panel_cena_celkem} Kč", 0, 0, 0, false, '', false);
 
+    $stridac_cena_nakup  = number_format($stridac_cena_nakup, 0, ".", " ");
+    $stridac_cena_celkem = number_format($stridac_cena_celkem, 0, ".", " ");
     $pdf->SetFont('exo2light', '', 10);
-    $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 12, 84, "{$stridac_vyrobce_name} - {$stridac_name}", 0, 0, 0, false, '', false);
     $pdf->SetFont('exo2light', '', 12);
-    $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 120, 84, "{$stridac_pocet}", 0, 0, 0, true, '', false);
     $pdf->writeHTMLCell(0, 2, 137, 84, "{$stridac_svt}", 0, 0, 0, true, '', false);
     $pdf->writeHTMLCell(0, 2, 175, 84, "{$stridac_cena_nakup} Kč", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 210, 84, "{$stridac_cena_celkem} Kč", 0, 0, 0, false, '', false);
 
+    $baterie_cena_nakup  = number_format($baterie_cena_nakup, 0, ".", " ");
+    $baterie_cena_celkem = number_format($baterie_cena_celkem, 0, ".", " ");
     $pdf->SetFont('exo2light', '', 10);
-    $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 12, 93, "{$baterie_vyrobce_name} - {$baterie_name}", 0, 0, 0, false, '', false);
     $pdf->SetFont('exo2light', '', 12);
-    $pdf->SetTextColor(0, 0, 0);
     $pdf->writeHTMLCell(0, 2, 120, 93, "{$baterie_pocet}", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 147, 93, "-", 0, 0, 0, true, '', false);
     $pdf->writeHTMLCell(0, 2, 175, 93, "{$baterie_cena_nakup} Kč", 0, 0, 0, false, '', false);
     $pdf->writeHTMLCell(0, 2, 210, 93, "{$baterie_cena_celkem} Kč", 0, 0, 0, false, '', false);
 
-    $i=0;
+    $i = 0;
     foreach ($balicek_komponenty as $key => $value) {
-        $y = $i* 9 + 102;
+        $y = ($i++) * 9 + 102;
         $cena_nakup = get_post_meta($value->ID, 'cena_prodej', true);
-        $cena_prodej = get_post_meta($value->ID, 'cena_prodej', true);
 
         $pdf->SetFont('exo2light', '', 10);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 12, $y, "{$value->post_title}", 0, 0, 0, false, '', false);
         $pdf->SetFont('exo2light', '', 12);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 120, $y, "1", 0, 0, 0, false, '', false);
         $pdf->writeHTMLCell(0, 2, 147, $y, "-", 0, 0, 0, true, '', false);
        
+        $cena_nakup = number_format($cena_nakup, 0, ".", " ");
         $pdf->writeHTMLCell(0, 2, 175, $y, "{$cena_nakup} Kč", 0, 0, 0, true, '', false);
-        $pdf->writeHTMLCell(0, 2, 210, $y, "{$cena_prodej} Kč", 0, 0, 0, true, '', false);
-        $i++;
+        $pdf->writeHTMLCell(0, 2, 210, $y, "{$cena_nakup} Kč", 0, 0, 0, true, '', false);
     }
 
     $cena_konstrukce = get_post_meta($post_id, 'cena_konstrukce', true);
     if($cena_konstrukce !== '0' || $cena_konstrukce === ''){
-        if ($cena_konstrukce == "") $cena_konstrukce = 0;
+        if ($cena_konstrukce == "")
+            $cena_konstrukce = 0;
+        
+        $cena_konstrukce = number_format($cena_konstrukce, 0, ".", " ");
         $pdf->SetFont('exo2light', '', 10);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 12, $y + 9, "Střecha - konstrukce", 0, 0, 0, false, '', false);
         $pdf->SetFont('exo2light', '', 12);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 120, $y + 9, "1", 0, 0, 0, false, '', false);
         $pdf->writeHTMLCell(0, 2, 147, $y + 9, "-", 0, 0, 0, true, '', false);
         $pdf->writeHTMLCell(0, 2, 175, $y + 9, "{$cena_konstrukce} Kč", 0, 0, 0, true, '', false);
@@ -713,17 +720,22 @@ function download_technical_pdf() {
 
     $vice_prace = get_post_meta($post_id, 'vice_prace', true);
     if($vice_prace !== '0' || $vice_prace === ''){
-        if ($vice_prace == "") $vice_prace = 0;
+        if ($vice_prace == "")
+            $vice_prace = 0;
+
+        $vice_prace = number_format($vice_prace, 0, ".", " ");
         $pdf->SetFont('exo2light', '', 10);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 12, $y + 18, "Více práce", 0, 0, 0, false, '', false);
         $pdf->SetFont('exo2light', '', 12);
-        $pdf->SetTextColor(0, 0, 0);
         $pdf->writeHTMLCell(0, 2, 120, $y + 18, "1", 0, 0, 0, false, '', false);
         $pdf->writeHTMLCell(0, 2, 147, $y + 18, "-", 0, 0, 0, true, '', false);
         $pdf->writeHTMLCell(0, 2, 175, $y + 18, "{$vice_prace} Kč", 0, 0, 0, true, '', false);
         $pdf->writeHTMLCell(0, 2, 210, $y + 18, "{$vice_prace} Kč", 0, 0, 0, true, '', false);
     }
+
+    $cena_bez_dph = number_format($cena_bez_dph, 0, ".", " ");
+    $dph          = number_format($dph, 0, ".", " ");
+    $cena_celkem  = number_format($cena_celkem, 0, ".", " ");
     $pdf->SetFont('exo2b', '', 12);
     $pdf->writeHTMLCell(210, 0, 205, 217.7, "{$cena_bez_dph} Kč", 0, 0, 0, true, '', false);
     $pdf->writeHTMLCell(210, 0, 205, 225.7, "{$dph} Kč", 0, 0, 0, true, '', false);
