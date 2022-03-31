@@ -206,7 +206,7 @@ if( !function_exists("customer_management_info_page") ) {
                             <a id="c_m_nabidky" href="#">Nabídky</a>
                         </div>
                         <legend><span class="number">3</span> Komentář</legend>
-                        <div class="form-group row">
+                        <div class="form-group row" id="c_m_comment">
                             <textarea class="col-sm-9" oninput="auto_grow(this)" placeholder="Napsat komentář..."></textarea>
                             <button class="offset-sm-1 col-sm-2 btn btn-primary comment-save" style="height: 50px;" data-id="">Uložit</button>
                         </div>
@@ -236,6 +236,7 @@ if( !function_exists("customer_management_info_page") ) {
                     <th>Obhlídka</th>
                     <th>Nabídky</th>
                     <th style="display: none;">Poznámka</th>
+                    <th>Poznámka</th>
                 </tr>
             </thead>
             <tbody>
@@ -395,13 +396,14 @@ if( !function_exists("customer_management_info_page") ) {
                                                 'customer_id' => $post->ID,
                                             ), admin_url('post-new.php?post_type=nabidky') ) . '">Vytvořit</a>' .
                             '</td>' .
-                            '<td style="display: none;" contenteditable="true" class="poznamka" data-id="' . $post->ID . '">';
+                            '<td style="display: none;" class="poznamka" data-id="' . $post->ID . '">';
                     foreach ( $comments as $comment ) {
                         echo    '<div>' . $comment->comment_author . '</div>';
                         echo    '<div>' . $comment->comment_date . '</div>';
                         echo    '<div>' . $comment->comment_content . '</div>';
                     }
                     echo    '</td>' .
+                            '<td class="last-poznamka">' . strip_tags($comments[0]->comment_content) . '</td>' .
                     '</tr>';
 
                     $i++;
@@ -414,8 +416,11 @@ if( !function_exists("customer_management_info_page") ) {
         $ = jQuery;
 
         jQuery(document).on('click', '.comment-save', function() {
+            let commentDOM = jQuery(event.target).closest('div').find('textarea');
             let comment = jQuery(event.target).closest('div').find('textarea').val();
             let postID = jQuery(this).attr('data-id');
+            let lastTD = jQuery("tr[data-id='" + postID + "'] .last-poznamka");
+            let secondLastTD = jQuery("tr[data-id='" + postID + "'] .poznamka");
             
             jQuery.ajax({
                 url : '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -425,9 +430,21 @@ if( !function_exists("customer_management_info_page") ) {
                     postID : postID,
                     comment : comment,
                 },
+                dataType: 'JSON',
                 success : function( response ) {
-                    window.location.href = '<?php echo admin_url('admin.php?page=customer-management'); ?>';
-                    console.log('success');
+                    commentDOM.val(null);
+
+                    var tmp = $(this).find('div');
+                    var string = '';
+                    string += '<div class="row comment-div">' + response.result.comment_author + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + response.comment_date + '</div>';
+                    const originalString = response.result.comment_content;
+                    var strippedString = originalString.replace(/(<([^>]+)>)/gi, "");
+                    string += '<div class="form-group row comment-div"><textarea class="col-sm-12" oninput="auto_grow(this)" readonly>' + strippedString + '</textarea></div>';
+                    $(string).insertAfter("#c_m_comment");
+
+                    lastTD[0].innerHTML = response.result.comment_content;
+
+                    secondLastTD.prepend('<div>' + response.result.comment_author + '</div><div>' + response.comment_date + '</div><div>' + response.result.comment_content + '</div>');
                 },
                 error: function (error) {
                     console.log(error);

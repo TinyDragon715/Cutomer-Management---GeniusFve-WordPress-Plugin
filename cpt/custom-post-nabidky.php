@@ -133,8 +133,9 @@ function manage_nabidky_columns($column, $post_id) {
         case 'datum':
             $value = get_post_meta($post_id, 'datum', true);
 
-			if (empty($value)) echo __(get_the_date( 'Y-m-d H:i:s' )); 
-            else printf( __('%s'), $value);
+            echo __(get_the_date( 'Y-m-d H:i:s' )); 
+			// if (empty($value)) echo __(get_the_date( 'Y-m-d H:i:s' ));
+            // else printf( __('%s'), $value);
             break;
 
         case 'adresa_instalace' :

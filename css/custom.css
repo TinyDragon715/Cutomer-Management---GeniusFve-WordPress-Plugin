@@ -2,6 +2,14 @@
   margin-left: 15px;
 }
 
+.dataTable tr > th:last-child {
+  max-width: 200px;
+}
+
+.dataTable tr > td:last-child {
+  max-width: 200px;
+}
+
 .dataTables_length label {
   margin-bottom: 0px !important;
 }
@@ -13,6 +21,7 @@
 
 .dataTables_wrapper {
   width: 98% !important;
+  overflow-x: scroll;
 }
 
 #wpcontent {
