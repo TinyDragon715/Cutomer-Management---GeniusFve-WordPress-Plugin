@@ -313,7 +313,14 @@ function get_nabidky_action() {
 
 add_action( 'wp_ajax_get_package_action', 'get_package_action' );
 function get_package_action() {
-	
+	$customer_id = intval( $_POST['customer_id']);
+	$formular = get_post_meta($customer_id, 'formular', true);
+	$region = get_post_meta($formular, '_field_63', true);
+	$region_bonus_flag = 0;
+	if ($region == "Moravskoslezsk kraj" || $region == "steck kraj" || $region == "Karlovarsk kraj") {
+		$region_bonus_flag = 1;
+	}
+
 	$balicy_id = intval( $_POST['package']);
 	$balicy_panel_id = get_post_meta( $balicy_id, 'panel', true);
 	$balicy_baterie_id = get_post_meta( $balicy_id, 'baterie', true);
@@ -324,7 +331,9 @@ function get_package_action() {
 	$balicy_stridac_n = get_post_meta( $balicy_id, 'defaultni_pocet_stridacu', true);
 
 	$balicy_panel_cena = get_post_meta( $balicy_panel_id, 'cena_nakup', true);
+	$balicy_panel_performance = get_post_meta( $balicy_panel_id, 'vykon', true);
 	$balicy_baterie_cena = get_post_meta( $balicy_baterie_id, 'cena_nakup', true);
+	$balicy_battery_capacity = get_post_meta( $balicy_baterie_id, 'kapacita', true);
 	$balicy_stridac_cena = get_post_meta( $balicy_stridac_id, 'cena_nakup', true);
 
 	$balicek_komponenty = get_field('komponenty', $balicy_id);
@@ -342,6 +351,9 @@ function get_package_action() {
 			'panel_price' => (int)$balicy_panel_cena,
 			'battery_price' => (int)$balicy_baterie_cena,
 			'inverter_price' => (int)$balicy_stridac_cena,
+			'panel_performance' => (float)$balicy_panel_performance / 1000.0,
+			'battery_capacity' => (float)$balicy_battery_capacity,
+			'region_bonus_flag' => (int)$region_bonus_flag,
 		)
 	);
 	wp_die();
@@ -353,4 +365,19 @@ function get_dotace_action() {
 	$dotace_price = get_post_meta( $dotace_id, 'vyse', true);
 	echo json_encode(array('dotace_price' => $dotace_price));
 	wp_die();
+}
+
+add_action('save_post','save_post_callback',10,3);
+function save_post_callback($post_id,$post,$update){
+    if ($post->post_type != 'nabidky'){
+        return;
+    }
+
+    //if you get here then it's your post type so do your thing....
+	if ($update) {
+		download_pdf($post_id, 1);
+		download_contrac_pdf($post_id, 1);
+		download_zakaznic_pdf($post_id, 1);
+		download_technical_pdf($post_id, 1);
+	}
 }

@@ -1,10 +1,46 @@
 <?php
-// download pdf
-add_action('admin_post_download_pdf_action', 'download_pdf');
-add_action('admin_post_nopriv_download_pdf_action', 'download_pdf');
-function download_pdf() {
-    $nabidky_id = $_POST['selected_post_id'];
+function add_pdfs_to_zakaznici($pdf, $file_name, $client_name, $flag) {
+    $uploaddir = wp_upload_dir();
+    $uploadfile = $uploaddir['path'] . '/' . $file_name;
+    $pdf->Output($uploadfile, 'F');
 
+    $wp_filetype = wp_check_filetype(basename($file_name), null);
+
+    $attachment = array(
+        'post_mime_type' => $wp_filetype['type'],
+        'post_title' => $client_name,
+        'post_content' => '',
+        'post_status' => 'inherit'
+    );
+
+    $attach_id = wp_insert_attachment( $attachment, $uploadfile );
+
+    $imagenew = get_post( $attach_id );
+    $fullsizepath = get_attached_file( $imagenew->ID );
+    $attach_data = wp_generate_attachment_metadata( $attach_id, $fullsizepath );
+    wp_update_attachment_metadata( $attach_id, $attach_data );
+
+    $zakaznici_post = get_page_by_title($client_name, OBJECT, 'zakaznik');
+    $zakaznici_post_id = $zakaznici_post->ID;
+    if ($flag == 1) {
+        update_post_meta($zakaznici_post_id, 'nabidky_pdf_nabidku', $attach_id);
+    } else if ($flag == 2) {
+        update_post_meta($zakaznici_post_id, 'nabidky_smlouvu', $attach_id);
+    } else if ($flag == 3) {
+        update_post_meta($zakaznici_post_id, 'nabidky_obhlidkovy_formular', $attach_id);
+    } else if ($flag == 4) {
+        update_post_meta($zakaznici_post_id, 'nabidky_rozpoctovou_tabulku', $attach_id);
+    }
+}
+
+// download pdf
+add_action('admin_post_download_pdf_action', 'prev_download_pdf');
+add_action('admin_post_nopriv_download_pdf_action', 'prev_download_pdf');
+function prev_download_pdf() {
+    download_pdf($_POST['selected_post_id'], 0);
+}
+
+function download_pdf($nabidky_id, $download_flag) {
     $offer_id       = get_post_meta($nabidky_id, 'c', true);
     $client_name    = get_post_meta($nabidky_id, 'zakaznik', true);
     $address        = get_post_meta($nabidky_id, 'adresa_instalace', true);
@@ -179,8 +215,13 @@ function download_pdf() {
     
     ob_end_clean();
     $file_name = $client_name . '.pdf';
-    $pdf->Output($file_name, 'D');    
-    exit;
+    
+    if ($download_flag == 0) {
+        $pdf->Output($file_name, 'D');
+        exit;
+    } else if ($download_flag == 1) {
+        add_pdfs_to_zakaznici($pdf, $file_name, $client_name, 1);
+    }
 }
 
 function show_contract_customer_number_for_each_page($pdf, $customer_number) {
@@ -195,8 +236,11 @@ function show_contract_customer_number_for_each_page($pdf, $customer_number) {
 
 add_action('admin_post_download_contrac_pdf_action', 'download_contrac_pdf');
 add_action('admin_post_nopriv_download_contrac_pdf_action', 'download_contrac_pdf');
-function download_contrac_pdf() {
-    $post_id = $_POST['selected_contrac_post_id'];
+function prev_download_contrac_pdf() {
+    download_contrac_pdf($_POST['selected_contrac_post_id'], 0);
+}
+
+function download_contrac_pdf($post_id, $download_flag) {
     $name = get_post_meta($post_id, 'zakaznik', true);
     $email = get_post_meta($post_id, 'e-mail', true);
     $telefon = get_post_meta($post_id, 'telefon', true);
@@ -308,8 +352,13 @@ function download_contrac_pdf() {
 
     ob_end_clean();
     $file_name = $name . '_Smlouva_o_dilo_č. ' . $customer_number . '.pdf';
-    $pdf->Output($file_name, 'D');
-    exit;
+
+    if ($download_flag == 0) {
+        $pdf->Output($file_name, 'D');
+        exit;
+    } else if ($download_flag == 1) {
+        add_pdfs_to_zakaznici($pdf, $file_name, $name, 2);
+    }
 }
 
 $kraj_arr = [
@@ -352,8 +401,11 @@ $o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr = [
 
 add_action('admin_post_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
 add_action('admin_post_nopriv_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
-function download_zakaznic_pdf() {
-    $nabidky_post_id = $_POST['selected_zakaznic_post_id'];
+function prev_download_zakaznic_pdf() {
+    download_zakaznic_pdf($_POST['selected_zakaznic_post_id'], 0);
+}
+
+function download_zakaznic_pdf($nabidky_post_id, $download_flag) {
     $name = get_post_meta($nabidky_post_id, 'zakaznik', true);
     $post = get_page_by_title($name, OBJECT, 'zakaznik');
     $post_id = $post->ID;
@@ -580,15 +632,22 @@ function download_zakaznic_pdf() {
 
     ob_end_clean();
     $file_name = $name.'_zakaznic.pdf';
-    $pdf->Output($file_name, 'D');
-    exit;
+
+    if ($download_flag == 0) {
+        $pdf->Output($file_name, 'D');
+        exit;
+    } else if ($download_flag == 1) {
+        add_pdfs_to_zakaznici($pdf, $file_name, $name, 3);
+    }
 }
 
 add_action('admin_post_download_technical_pdf_action', 'download_technical_pdf');
 add_action('admin_post_nopriv_download_technical_pdf_action', 'download_technical_pdf');
-function download_technical_pdf() {
-    $post_id = $_POST['selected_technical_post_id'];
+function prev_download_technical_pdf() {
+    download_technical_pdf($_POST['selected_technical_post_id'], 0);
+}
 
+function download_technical_pdf($post_id, $download_flag) {
     $name           = get_post_meta($post_id, 'zakaznik', true);
     $balicek_id     = get_post_meta($post_id, 'vyberte_balicek', true);
     $smlouva_number = get_post_meta($post_id, 'c', true);
@@ -743,7 +802,12 @@ function download_technical_pdf() {
 
     ob_end_clean();
     $file_name = $name.'_technical.pdf';
-    $pdf->Output($file_name, 'D');    
-    exit;
+    
+    if ($download_flag == 0) {
+        $pdf->Output($file_name, 'D');
+        exit;
+    } else if ($download_flag == 1){
+        add_pdfs_to_zakaznici($pdf, $file_name, $name, 4);
+    }
 }
 ?>

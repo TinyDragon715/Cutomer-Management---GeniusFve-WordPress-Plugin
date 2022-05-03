@@ -6,6 +6,7 @@ function register_script() {
     wp_register_script( 'dataTables', 'https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js', null, null, false );
     wp_register_script( 'dropzone', 'https://unpkg.com/dropzone@5/dist/min/dropzone.min.js', null, null, false );
 
+    wp_register_style( 'cm_nabidky_style', plugins_url('/css/nabidky.css', __DIR__), false, '1.0.0', 'all');
     wp_register_style( 'my_style', plugins_url('/css/custom.css', __DIR__), false, '1.0.0', 'all');
     // wp_register_style( 'bootstrap_style', plugins_url('/css/customer-management.css', __DIR__), false, '1.0.0', 'all');
     wp_register_style( 'dataTables', 'https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css', null, null, false );
@@ -29,6 +30,7 @@ function enqueue_style(){
     );
     wp_localize_script('my-script','dropParam', $drop_param);
     
+    wp_enqueue_style( 'cm_nabidky_style' );
     wp_enqueue_style( 'my_style' );
     // wp_enqueue_style( 'bootstrap_style' );
     wp_enqueue_style( 'dataTables' );
