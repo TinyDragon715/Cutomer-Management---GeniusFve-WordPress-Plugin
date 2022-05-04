@@ -234,8 +234,8 @@ function show_contract_customer_number_for_each_page($pdf, $customer_number) {
     $pdf->writeHTMLCell(30, 20, 165, 15, "{$customer_number}", 0, 0, 0, true, '', false);
 }
 
-add_action('admin_post_download_contrac_pdf_action', 'download_contrac_pdf');
-add_action('admin_post_nopriv_download_contrac_pdf_action', 'download_contrac_pdf');
+add_action('admin_post_download_contrac_pdf_action', 'prev_download_contrac_pdf');
+add_action('admin_post_nopriv_download_contrac_pdf_action', 'prev_download_contrac_pdf');
 function prev_download_contrac_pdf() {
     download_contrac_pdf($_POST['selected_contrac_post_id'], 0);
 }
@@ -244,8 +244,12 @@ function download_contrac_pdf($post_id, $download_flag) {
     $name = get_post_meta($post_id, 'zakaznik', true);
     $email = get_post_meta($post_id, 'e-mail', true);
     $telefon = get_post_meta($post_id, 'telefon', true);
-    $address = get_post_meta($post_id, 'adresa_instalace', true);
+    $address_instalace = get_post_meta($post_id, 'adresa_instalace', true);
     $customer_number = get_post_meta($post_id, 'c', true);
+
+    $zakaznici_post = get_page_by_title($name, OBJECT, 'zakaznik');
+    $zakaznici_post_id = $zakaznici_post->ID;
+    $trvaly_pobyt = get_post_meta($zakaznici_post_id, 'trvaly_pobyt', true);
 
     require_once WP_CONTENT_DIR . '/plugins/tecnickcom/tcpdf/tcpdf.php';
     require_once WP_CONTENT_DIR . '/plugins/setasign/fpdi/src/autoload.php';
@@ -266,11 +270,11 @@ function download_contrac_pdf($post_id, $download_flag) {
 
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('exo2b', '', 10);
-    $pdf->writeHTMLCell(100, 20, 34, 221, $address, 0, 0, 0, true, '', false);
+    $pdf->writeHTMLCell(100, 20, 37, 226, $trvaly_pobyt, 0, 0, 0, true, '', false);
 
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('exo2b', '', 10);
-    $pdf->writeHTMLCell(100, 20, 44, 231, $email, 0, 0, 0, true, '', false);
+    $pdf->writeHTMLCell(100, 20, 37, 236, $email, 0, 0, 0, true, '', false);
 
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('exo2b', '', 10);
@@ -281,70 +285,221 @@ function download_contrac_pdf($post_id, $download_flag) {
     $pdf->useTemplate($tplidx);
     show_contract_customer_number_for_each_page($pdf, $customer_number);
 
-    $tplidx = $pdf->importPage(3);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->SetFont('exo2b', '', 10);
+    $pdf->writeHTMLCell(100, 20, 70, 140.2, $address_instalace, 0, 0, 0, true, '', false);
 
-    $tplidx = $pdf->importPage(4);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    for ($i = 3; $i <= 8; $i++) {
+        $tplidx = $pdf->importPage($i);
+        $pdf->AddPage();
+        $pdf->useTemplate($tplidx);
+        show_contract_customer_number_for_each_page($pdf, $customer_number);
+    }
 
-    $tplidx = $pdf->importPage(5);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $balicek_id     = get_post_meta($post_id, 'vyberte_balicek', true);
 
-    $tplidx = $pdf->importPage(6);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $panel_n = get_post_meta( $post_id, 'pocet_panelu', true);
+    $baterie_n = get_post_meta( $post_id, 'pocet_baterii', true);
+    $stridac_n = get_post_meta( $post_id, 'pocet_stridacu', true);
 
-    $tplidx = $pdf->importPage(7);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
-
-    $tplidx = $pdf->importPage(8);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $panel_id = get_post_meta($balicek_id, 'panel', true);
+    $baterie_id = get_post_meta($balicek_id, 'baterie', true);
+    $stridac_id = get_post_meta($balicek_id, 'stridac', true);
     
+    $panel = get_field('panel', $balicek_id);
+    $panel_name = $panel->post_title;
+    $panel_vyrobce =  get_field('vyrobce', $panel_id);
+    $panel_vyrobce_name = $panel_vyrobce->post_title;
+    $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
+    $panel_popis = get_post_meta($panel_id, 'popis', true);
+    $panel_svt = get_post_meta($panel_id, 'svt', true);
+    $panel_cena_nakup = get_post_meta($panel_id, 'cena_nakup', true);
+    $panel_cena_celkem = (int)$panel_cena_nakup * (int)$panel_n;
+
+    $baterie = get_field('baterie', $balicek_id);
+    $baterie_name = $baterie->post_title;
+    $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
+    $baterie_vyrobce_name = $baterie_vyrobce->post_title;
+    $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
+    $baterie_popis = get_post_meta($baterie_id, 'popis', true);
+    $baterie_cena_nakup = get_post_meta($baterie_id, 'cena_nakup', true);
+    $baterie_cena_celkem =  (int)$baterie_cena_nakup * (int)$baterie_n;
+    
+    $stridac = get_field('stridac', $balicek_id);
+    $stridac_name = $stridac->post_title;
+    $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
+    $stridac_vyrobce_name = $stridac_vyrobce->post_title;
+    $stridac_pocet = get_post_meta($post_id, 'pocet_stridacu', true);
+    $stridac_popis = get_post_meta($stridac_id, 'popis', true);
+    $stridac_svt = get_post_meta($stridac_id, 'svt', true);
+    $stridac_cena_nakup = get_post_meta($stridac_id, 'cena_nakup', true);
+    $stridac_cena_celkem = (int)$stridac_cena_nakup * (int)$stridac_n;
+
+    $dotace_price = get_post_meta($post_id, 'dotace_vyse', true);
+    if($dotace_price === ''){
+        $dotace_price = 0;
+    }
+    $real_price = (int)get_post_meta($post_id, 'vlastni_investice_celkem', true);
+    $cena_celkem = $real_price + (int)$dotace_price;
+    $cena_bez_dph = floatval($cena_celkem) / 1.15;
+    $cena_bez_dph = round($cena_bez_dph, 0);
+    $cena_bez_dph = (int)$cena_bez_dph;
+    $dph = $cena_celkem - $cena_bez_dph;
+
+    $balicek_komponenty = get_field('komponenty', $balicek_id);
+
+    // Page 9.
     $tplidx = $pdf->importPage(9);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
 
+    $pdf->SetTextColor(0, 0 , 0);
+    $pdf->SetFont('exo2b', '', 14);
+    $pdf->writeHTMLCell(0, 2, 200, 18, "{$smlouva_number}", 0, 0, 0, false, '', false);
+
+    $panel_cena_nakup  = number_format($panel_cena_nakup, 0, ".", " ");
+    $panel_cena_celkem = number_format($panel_cena_celkem, 0, ".", " ");
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, 68, "{$panel_vyrobce_name} - {$panel_name}", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 125, 68, "{$panel_pocet} ks", 0, 0, 0, false, '', false);
+    $pdf->writeHTMLCell(0, 2, 165, 68, "{$panel_cena_nakup} Kč", 0, 0, 0, false, '', false);
+
+    $stridac_cena_nakup  = number_format($stridac_cena_nakup, 0, ".", " ");
+    $stridac_cena_celkem = number_format($stridac_cena_celkem, 0, ".", " ");
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, 77, "{$stridac_vyrobce_name} - {$stridac_name}", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 125, 84, "{$stridac_pocet} ks", 0, 0, 0, true, '', false);
+    $pdf->writeHTMLCell(0, 2, 165, 84, "{$stridac_cena_nakup} Kč", 0, 0, 0, false, '', false);
+
+    $baterie_cena_nakup  = number_format($baterie_cena_nakup, 0, ".", " ");
+    $baterie_cena_celkem = number_format($baterie_cena_celkem, 0, ".", " ");
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, 93, "{$baterie_vyrobce_name} - {$baterie_name}", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 125, 93, "{$baterie_pocet} ks", 0, 0, 0, false, '', false);
+    $pdf->writeHTMLCell(0, 2, 165, 93, "{$baterie_cena_nakup} Kč", 0, 0, 0, false, '', false);
+
+    $i = 0;
+    foreach ($balicek_komponenty as $key => $value) {
+        $y = ($i++) * 9 + 102;
+        $cena_nakup = get_post_meta($value->ID, 'cena_prodej', true);
+
+        $pdf->SetFont('exo2light', '', 10);
+        $pdf->writeHTMLCell(0, 2, 24, $y, "{$value->post_title}", 0, 0, 0, false, '', false);
+        $pdf->SetFont('exo2light', '', 12);
+        $pdf->writeHTMLCell(0, 2, 125, $y, "1 ks", 0, 0, 0, false, '', false);
+       
+        $cena_nakup = number_format($cena_nakup, 0, ".", " ");
+        $pdf->writeHTMLCell(0, 2, 165, $y, "{$cena_nakup} Kč", 0, 0, 0, true, '', false);
+    }
+
+    $cena_konstrukce = get_post_meta($post_id, 'cena_konstrukce', true);
+    if($cena_konstrukce !== '0' || $cena_konstrukce === ''){
+        if ($cena_konstrukce == "")
+            $cena_konstrukce = 0;
+        
+        $cena_konstrukce = number_format($cena_konstrukce, 0, ".", " ");
+        $pdf->SetFont('exo2light', '', 10);
+        $pdf->writeHTMLCell(0, 2, 24, $y + 9, "Střecha - konstrukce", 0, 0, 0, false, '', false);
+        $pdf->SetFont('exo2light', '', 12);
+        $pdf->writeHTMLCell(0, 2, 125, $y + 9, "1 ks", 0, 0, 0, false, '', false);
+        $pdf->writeHTMLCell(0, 2, 165, $y + 9, "{$cena_konstrukce} Kč", 0, 0, 0, true, '', false);
+    }
+
+    $vice_prace = get_post_meta($post_id, 'vice_prace', true);
+    if($vice_prace !== '0' || $vice_prace === ''){
+        if ($vice_prace == "")
+            $vice_prace = 0;
+
+        $vice_prace = number_format($vice_prace, 0, ".", " ");
+        $pdf->SetFont('exo2light', '', 10);
+        $pdf->writeHTMLCell(0, 2, 24, $y + 18, "Více práce", 0, 0, 0, false, '', false);
+        $pdf->SetFont('exo2light', '', 12);
+        $pdf->writeHTMLCell(0, 2, 125, $y + 18, "1 ks", 0, 0, 0, false, '', false);
+        $pdf->writeHTMLCell(0, 2, 165, $y + 18, "{$vice_prace} Kč", 0, 0, 0, true, '', false);
+    }
+
+    $cena_bez_dph = number_format($cena_bez_dph, 0, ".", " ");
+    $dph          = number_format($dph, 0, ".", " ");
+    $cena_celkem  = number_format($cena_celkem, 0, ".", " ");
+
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, $y + 27, "Cena bez DPH", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 165, $y + 27, "{$cena_bez_dph} Kč", 0, 0, 0, false, '', false);
+
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, $y + 36, "DPH", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 165, $y + 36, "{$dph} Kč", 0, 0, 0, false, '', false);
+
+    $pdf->SetFont('exo2light', '', 10);
+    $pdf->writeHTMLCell(0, 2, 24, $y + 45, "Cena celkem", 0, 0, 0, false, '', false);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 165, $y + 45, "{$cena_celkem} Kč", 0, 0, 0, false, '', false);
+
+    $panel_id = get_post_meta($balicek_id, 'panel', true);
+    $panel = get_field('panel', $balicek_id);
+    $panel_name = $panel->post_title;
+    $panel_vyrobce =  get_field('vyrobce', $panel_id);
+    $panel_vyrobce_name = $panel_vyrobce->post_title;
+    $panel_pocet = get_post_meta($post_id, 'pocet_panelu', true);
+    $panel_vykon = get_post_meta($panel_id, 'vykon', true);
+    $panel_popis = get_post_meta($panel_id, 'popis', true);
+    $panel_o_vykonu = $panel_vykon * $panel_pocet;
+
+    $baterie_id = get_post_meta($balicek_id, 'baterie', true);
+    $baterie = get_field('baterie', $balicek_id);
+    $baterie_name = $baterie->post_title;
+    $baterie_vyrobce =  get_field('vyrobce', $baterie_id);
+    $baterie_vyrobce_name = $baterie_vyrobce->post_title;
+    $baterie_pocet = get_post_meta($post_id, 'pocet_baterii', true);
+    $baterie_kapacita = get_post_meta($baterie_id, 'kapacita', true);
+    $baterie_popis = get_post_meta($baterie_id, 'popis', true);
+    $baterie_kapacitou = $baterie_kapacita * $baterie_pocet;
+    
+    $stridac_id = get_post_meta($balicek_id, 'stridac', true);
+    $stridac = get_field('stridac', $balicek_id);
+    $stridac_name = $stridac->post_title;
+    $stridac_vyrobce =  get_field('vyrobce', $stridac_id);
+    $stridac_vyrobce_name = $stridac_vyrobce->post_title;
+    $stridac_pocet = get_post_meta($post_id, 'pocet_stridacu', true);
+    $stridac_popis = get_post_meta($stridac_id, 'popis', true);
+
+    // Page 10.
     $tplidx = $pdf->importPage(10);
     $pdf->AddPage();
     $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
 
-    $tplidx = $pdf->importPage(11);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $tbl = '
+    <table style="border: 1px solid #CFDBEF" cellspacing="0" cellpadding="10">
+        <tr style="border: 1px solid #CFDBEF">
+            <td style="border: 1px solid #CFDBEF">Solární panely: ' . $panel_vyrobce_name . ' - ' . $panel_name . '</td>
+            <td style="border: 1px solid #CFDBEF">' . $panel_popis . '</td>
+        </tr>
+        <tr style="border: 1px solid #CFDBEF; background: #CFDBEF;">
+            <td style="border: 1px solid #CFDBEF; background: #CFDBEF;">Střídač: ' . $stridac_vyrobce_name . ' - ' . $stridac_name . '</td>
+            <td style="border: 1px solid #CFDBEF; background: #CFDBEF;">' . $stridac_popis . '</td>
+        </tr>
+        <tr style="border: 1px solid #CFDBEF">
+            <td style="border: 1px solid #CFDBEF">Baterie: ' . $baterie_vyrobce_name . ' - ' . $baterie_name . '</td>
+            <td style="border: 1px solid #CFDBEF">' . $baterie_popis . '</td>
+        </tr>
+    </table>
+    ';
 
-    $tplidx = $pdf->importPage(12);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    $pdf->SetTextColor(47, 84, 150);
+    $pdf->SetFont('exo2light', '', 12);
+    $pdf->writeHTMLCell(0, 2, 20, 90, $tbl, 0, 0, 0, false, '', false);
 
-    $tplidx = $pdf->importPage(13);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
-
-    $tplidx = $pdf->importPage(14);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
-
-    $tplidx = $pdf->importPage(15);
-    $pdf->AddPage();
-    $pdf->useTemplate($tplidx);
-    show_contract_customer_number_for_each_page($pdf, $customer_number);
+    for ($i = 11; $i <= 15; $i++) {
+        $tplidx = $pdf->importPage($i);
+        $pdf->AddPage();
+        $pdf->useTemplate($tplidx);
+        show_contract_customer_number_for_each_page($pdf, $customer_number);
+    }
 
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('exo2b', '', 10);
@@ -399,8 +554,8 @@ $o_společnosti_genius_fve_jsem_se_dozvedel_pres_arr = [
     ['wrong' => 'seznam', 'right' => 'Seznam'], ['wrong' => 'tel_nabidka', 'right' => 'Telefonickou nabídku']
 ];
 
-add_action('admin_post_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
-add_action('admin_post_nopriv_download_zakaznic_pdf_action', 'download_zakaznic_pdf');
+add_action('admin_post_download_zakaznic_pdf_action', 'prev_download_zakaznic_pdf');
+add_action('admin_post_nopriv_download_zakaznic_pdf_action', 'prev_download_zakaznic_pdf');
 function prev_download_zakaznic_pdf() {
     download_zakaznic_pdf($_POST['selected_zakaznic_post_id'], 0);
 }
@@ -641,8 +796,8 @@ function download_zakaznic_pdf($nabidky_post_id, $download_flag) {
     }
 }
 
-add_action('admin_post_download_technical_pdf_action', 'download_technical_pdf');
-add_action('admin_post_nopriv_download_technical_pdf_action', 'download_technical_pdf');
+add_action('admin_post_download_technical_pdf_action', 'prev_download_technical_pdf');
+add_action('admin_post_nopriv_download_technical_pdf_action', 'prev_download_technical_pdf');
 function prev_download_technical_pdf() {
     download_technical_pdf($_POST['selected_technical_post_id'], 0);
 }

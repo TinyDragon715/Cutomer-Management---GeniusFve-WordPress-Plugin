@@ -13,6 +13,7 @@ $customer_meta = get_post_meta($customer_id);
 $email = $customer_meta['e-mail'][0];
 $telefon = $customer_meta['telefon'][0];
 $adresa_realizace = $customer_meta['adresa_realizace'][0];
+$trvaly_pobyt = $customer_meta['trvaly_pobyt'][0];
 $title = explode(' ', $post[0]->post_title, 2);
 
 ?>
@@ -39,6 +40,13 @@ $title = explode(' ', $post[0]->post_title, 2);
             <div class="form-group col-md-6">
                 <label for="_field_11">Telefon</label>
                 <input type="text" class="form-control" id="_field_11" value="<?php echo $telefon ?>" disabled>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label for="_field_65">Trvalý Pobyt</label>
+                <input type="text" class="form-control" id="_field_65" value="<?php echo $trvaly_pobyt ?>" disabled>
             </div>
         </div>
 
@@ -301,8 +309,8 @@ jQuery(document).on('click', '.f-save-btn', function() {
 
     let text = [], select = [], textarea = [], radio = [], checkbox = [], i;
 
-    let index_arr = [9, 10, 18, 11, 12, 15, 16, 35, 37, 38, 39, 40, 41, 42, 24, 26, 44, 45, 46, 47, 48, 49, 50, 51, 52];
-    for (i = 0; i < 25; i++) text[i] = jQuery('#_field_' + index_arr[i]).val();
+    let index_arr = [9, 10, 18, 11, 12, 15, 16, 35, 37, 38, 39, 40, 41, 42, 24, 26, 44, 45, 46, 47, 48, 49, 50, 51, 52, 65];
+    for (i = 0; i < count(index_arr); i++) text[i] = jQuery('#_field_' + index_arr[i]).val();
     index_arr = [13, 30, 21, 22, 58, 63];
     for (i = 0; i < 6; i++) select[i] = jQuery('#_field_' + index_arr[i]).val();
     textarea[0] = jQuery('#_field_23').val();

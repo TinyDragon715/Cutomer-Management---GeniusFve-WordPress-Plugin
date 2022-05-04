@@ -729,7 +729,8 @@ function create_post_from_ninjaform( $form_data ){
     $name = $form_fields[ 64 ][ 'value' ];
     $email = $form_fields[ 18 ][ 'value' ];
     $telefon = $form_fields[ 11 ][ 'value' ];
-    // $adresa_realizace = $form_fields[ 12 ][ 'value' ];
+    $trvaly_pobyt = $form_fields[ 65 ][ 'value' ];
+    $adresa_realizace = $form_fields[ 12 ][ 'value' ];
     $date = date('d.m.Y H:i');
 
     $post_id = $form_fields[ 62 ][ 'value' ];
@@ -742,7 +743,8 @@ function create_post_from_ninjaform( $form_data ){
             'meta_input'	=> array(
                 'telefon'								=> $telefon,
                 'e-mail'								=> $email,
-                'adresa_realizace' 						=> '',
+                'trvaly_pobyt'                          => $trvaly_pobyt,
+                'adresa_realizace' 						=> $adresa_realizace,
                 'termin_realizace' 						=> $date,
                 'kontaktni_osoba_jmeno' 				=> '',
                 'cislo_na_kontaktni_osobu' 				=> '',
@@ -756,6 +758,10 @@ function create_post_from_ninjaform( $form_data ){
                 'plna_moc_na_nzu'						=> '',
                 'souhlasne_prohlaseni_vlastniku'		=> '',
                 'status'                                => 1,
+                'nabidky_pdf_nabidku'                   => '',
+                'nabidky_smlouvu'                       => '',
+                'nabidky_obhlidkovy_formular'           => '',
+                'nabidky_rozpoctovou_tabulku'           => '',
             ),
         );
 
