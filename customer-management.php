@@ -351,8 +351,8 @@ function get_package_action() {
 			'panel_price' => (int)$balicy_panel_cena,
 			'battery_price' => (int)$balicy_baterie_cena,
 			'inverter_price' => (int)$balicy_stridac_cena,
-			'panel_performance' => (float)$balicy_panel_performance / 1000.0,
-			'battery_capacity' => (float)$balicy_battery_capacity,
+			'panel_performance' => (float)$balicy_panel_performance * (int)$balicy_panel_n / 1000.0,
+			'battery_capacity' => (float)$balicy_battery_capacity * (int)$balicy_baterie_n,
 			'region_bonus_flag' => (int)$region_bonus_flag,
 		)
 	);
