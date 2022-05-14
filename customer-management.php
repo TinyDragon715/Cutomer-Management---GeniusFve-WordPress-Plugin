@@ -11,6 +11,88 @@
 */
 
 /**
+ * 
+ */
+register_activation_hook(__FILE__, 'geniusfvecm_activate');
+function geniusfvecm_activate() {
+    if ( ! wp_next_scheduled( 'check_nabidky' ) ) {
+        wp_schedule_event( time(), 'daily', 'check_nabidky' );
+    }
+}
+
+register_deactivation_hook( __FILE__, 'geniusfvecm_deactivate' );
+function geniusfvecm_deactivate() {
+    if (wp_next_scheduled( 'check_nabidky' ) ) {
+        $timestamp = wp_next_scheduled('check_nabidky');
+        wp_unschedule_event($timestamp, 'check_nabidky');
+    }
+    remove_action('check_nabidky', 'check_nabidky_exec');
+}
+
+add_action( 'check_nabidky', 'check_nabidky_exec' );
+function check_nabidky_exec() {
+	$args = array(
+		'post_type'     => 'zakaznik',
+		'post_status'   => 'publish',
+		'numberposts'   => -1,
+		'orderby'       => 'date',
+		'order'         => 'DESC',
+	);
+	$posts = get_posts($args);
+
+	$args = array(
+		'post_type' => 'stav',
+		'post_status' => 'publish',
+		'numberposts' => -1,
+		'orderby' => 'id',
+		'order' => 'ASC'
+	);
+	$stavs = get_posts($args);
+
+	foreach($posts as $post) {
+		$status = get_post_meta($post->ID, 'status', true);
+		if (!$status || $status < 20) {
+			$status = $stavs[0]->ID;
+		}
+
+		$termin = get_post_meta($post->ID, 'nabidky_created_date', true);
+		$nabidky_date = get_post_meta($status, 'nabidky_date', true);
+		if ($termin && $nabidky_date) {
+			$termin = date('Y-m-d', strtotime($termin . '+ ' . $nabidky_date . ' days'));
+
+			$today = date('Y-m-d');
+			// if (strtotime($termin) < strtotime($today)) {
+				$to = 'holub@genius-web.cz';
+				$subject = 'Je zde nabídka, která termín skončilo.';
+
+				$body = 'Zákazníci: ' . $post->post_title . '<br><br>
+				Uzávěrka nabídky této zákazníci vypršela.<br>
+				Tým Genius FVE.';
+				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Genius FVE <info@geniusfve.cz>');
+				// wp_mail($to, $subject, $body, $headers);
+
+				// $to = 'jiriandr@genius-web.cz';
+				// wp_mail($to, $subject, $body, $headers);
+
+				$to = 'vladimir715.han@gmail.com';
+				wp_mail($to, $subject, $body, $headers);
+			// }
+		}
+	}
+}
+
+/**
+ * Const variables
+ */
+$kraj_arr = [
+    ['wrong' => 'Hlavn msto Praha', 'right' => 'Hlavní město Praha'],       ['wrong' => 'Jihoesk kraj', 'right' => 'Jihočeský kraj'],               ['wrong' => 'Jihomoravsk kraj', 'right' => 'Jihomoravský kraj'],
+    ['wrong' => 'Karlovarsk kraj', 'right' => 'Karlovarský kraj'],          ['wrong' => 'Krlovehradeck kraj', 'right' => 'Královehradecký kraj'],   ['wrong' => 'Libereck kraj', 'right' => 'Liberecký kraj'],
+    ['wrong' => 'Moravskoslezsk kraj', 'right' => 'Moravskoslezský kraj'],  ['wrong' => 'Olomouck kraj', 'right' => 'Olomoucký kraj'],              ['wrong' => 'Pardubick kraj', 'right' => 'Pardubický kraj'],
+    ['wrong' => 'Plzesk kraj', 'right' => 'Plzeňský kraj'],                 ['wrong' => 'Stedoesk kraj', 'right' => 'Středočeský kraj'],            ['wrong' => 'steck kraj', 'right' => 'Ústecký kraj'],
+    ['wrong' => 'Vysoina', 'right' => 'Vysočina'],                          ['wrong' => 'Zlnsk kraj', 'right' => 'Zlínský kraj'],
+];
+
+/**
  * Register a custom menu page.
  */
 function wpdocs_register_my_custom_menu_page(){
@@ -370,9 +452,9 @@ function get_dotace_action() {
 	wp_die();
 }
 
-add_action('save_post','save_post_callback',10,3);
-function save_post_callback($post_id,$post,$update){
-    if ($post->post_type != 'nabidky'){
+add_action( 'save_post', 'save_post_callback', 10, 3);
+function save_post_callback($post_id,$post,$update) {
+    if ($post->post_type != 'nabidky') {
         return;
     }
 

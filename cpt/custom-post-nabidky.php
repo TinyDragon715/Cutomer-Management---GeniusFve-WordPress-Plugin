@@ -111,65 +111,78 @@ function nabidky_list_table_primary_column( $default, $screen ) {
 
 
 add_action( 'manage_nabidky_posts_custom_column', 'manage_nabidky_columns', 10, 2 );
-
 function manage_nabidky_columns($column, $post_id) {
-	global $post;
-
 	switch ($column) {
 		case 'c':
             $value = get_post_meta($post_id, 'c', true);
 
-			if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+			if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);  
+            }
 
             break;
 		case 'zakaznik':
             $value = get_field("zakaznik", $post_id);
+            $post = get_page_by_title($value, OBJECT, 'zakaznik');
+            $linkUrl = get_edit_post_link($post->ID);
+            $value = '<a href="' . $linkUrl . '">' . $value . '</a>';
 
-			if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+			if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;
         case 'datum':
             $value = get_post_meta($post_id, 'datum', true);
 
-            echo __(get_the_date( 'Y-m-d H:i:s' )); 
-			// if (empty($value)) echo __(get_the_date( 'Y-m-d H:i:s' ));
-            // else printf( __('%s'), $value);
-            break;
+            echo __(get_the_date( 'Y-m-d H:i:s' ));
 
-        case 'adresa_instalace' :
+            break;
+        case 'adresa_instalace':
             $value = get_post_meta($post_id, 'adresa_instalace', true);
                 
-            if (empty($value)) echo __('');
-            else printf( __('%s'), $value);
+            if (empty($value)) {
+                echo __('');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;
-
-        case 'stav' :
+        case 'stav':
             $value = get_post_meta($post_id, 'stav_procesu', true);
                 
-            if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+            if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;
-        case 'telefon' :
+        case 'telefon':
             $value = get_post_meta($post_id, 'telefon', true);
 
-            if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+            if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;
-            
-        case 'e-mail' :
-
+        case 'e-mail':
             $value = get_post_meta($post_id, 'e-mail', true);
 
-            if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+            if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;    
-        case 'akce' :
+        case 'akce':
             // $value = get_post_meta($post_id, 'customer_id', true);
             $name = get_post_meta($post_id, 'zakaznik', true);
             $post = get_page_by_title($name, OBJECT, 'zakaznik');
@@ -185,12 +198,15 @@ function manage_nabidky_columns($column, $post_id) {
             $value .= ' <button class="btn btn-technical btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Vygenerovat Rozpočtovou tabulku"><i class="fas fa-calculator"></i> </button> 
                         <button class="btn btn-edit btn-purple" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Editovat"><i class="fas fa-pencil-alt"></i> </button> 
                         <button class="btn btn-delete" data-id="'.$post_id.'" data-toggle="tooltip" data-placement="top" title="Smazat"> <i class="fas fa-trash-alt"></i></button> ';
-            if (empty($value)) echo __('Unknown');
-            else printf( __('%s'), $value);
+
+            if (empty($value)) {
+                echo __('Unknown');
+            } else {
+                printf( __('%s'), $value);
+            }
 
             break;
-
-		default :
+		default:
 			break;
 	}
 }

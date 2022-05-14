@@ -39,32 +39,30 @@ function enqueue_style(){
 
 add_action( 'admin_menu', 'customer_management_info_menu' );
 function customer_management_info_menu() {
-    $user = wp_get_current_user();
-    $role = $user->roles;
-
     $parent_slug = 'my-top-level-slug';
-    $page_title = 'WordPress Customer Management Info';
-    $menu_title = 'Zákazníci';
-    $capability = 'customer_manage_options';
-    $menu_slug  = 'customer-management';
-    $function   = 'customer_management_info_page';
-    $position   = 1;
+    $page_title  = 'WordPress Customer Management Info';
+    $menu_title  = 'Zákazníci';
+    $capability  = 'customer_manage_options';
+    $menu_slug   = 'customer-management';
+    $function    = 'customer_management_info_page';
+    $position    = 1;
     add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function, $position );
 
     $parent_slug = 'my-top-level-slug';
-    $page_title = 'Formulář poptávky manage';
-    $menu_title = 'Formulář_poptávky';
-    $capability = 'customer_manage_options';
-    $menu_slug = 'formular_poptavky';
-    $function = 'formular_poptavky_info_page';
-    add_submenu_page( null, $page_title, $menu_title, $capability, $menu_slug, $function );
+    $page_title  = 'Formulář poptávky manage';
+    $menu_title  = 'Formulář_poptávky';
+    $capability  = 'customer_manage_options';
+    $menu_slug   = 'formular_poptavky';
+    $function    = 'formular_poptavky_info_page';
+    $position    = 2;
+    add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $function, $position );
 
     $parent_slug = 'my-top-level-slug';
-    $page_title = 'Obhlídka manage';
-    $menu_title = 'Obhlídka';
-    $capability = 'customer_manage_options';
-    $menu_slug = 'obhlidka';
-    $function = 'obhlidka_info_page';
+    $page_title  = 'Obhlídka manage';
+    $menu_title  = 'Obhlídka';
+    $capability  = 'customer_manage_options';
+    $menu_slug   = 'obhlidka';
+    $function    = 'obhlidka_info_page';
     add_submenu_page( null, $page_title, $menu_title, $capability, $menu_slug, $function );
 }
 
@@ -150,14 +148,6 @@ function add_customers_automatically() {
     }
 }
 
-$kraj_arr = [
-    ['wrong' => 'Hlavn msto Praha', 'right' => 'Hlavní město Praha'],       ['wrong' => 'Jihoesk kraj', 'right' => 'Jihočeský kraj'],               ['wrong' => 'Jihomoravsk kraj', 'right' => 'Jihomoravský kraj'],
-    ['wrong' => 'Karlovarsk kraj', 'right' => 'Karlovarský kraj'],          ['wrong' => 'Krlovehradeck kraj', 'right' => 'Královehradecký kraj'],   ['wrong' => 'Libereck kraj', 'right' => 'Liberecký kraj'],
-    ['wrong' => 'Moravskoslezsk kraj', 'right' => 'Moravskoslezský kraj'],  ['wrong' => 'Olomouck kraj', 'right' => 'Olomoucký kraj'],              ['wrong' => 'Pardubick kraj', 'right' => 'Pardubický kraj'],
-    ['wrong' => 'Plzesk kraj', 'right' => 'Plzeňský kraj'],                 ['wrong' => 'Stedoesk kraj', 'right' => 'Středočeský kraj'],            ['wrong' => 'steck kraj', 'right' => 'Ústecký kraj'],
-    ['wrong' => 'Vysoina', 'right' => 'Vysočina'],                          ['wrong' => 'Zlnsk kraj', 'right' => 'Zlínský kraj'],
-];
-
 $osobaDefaultString = ['', 'Dorota', 'Polda', 'Dorota', 'Elektrikář', 'Lia', 'Dorota', 'Lia', 'Věra', 'Věra', 'Věra', 'Věra', 'Věra', 'Jirka', 'Dorota'];
 
 if( !function_exists("customer_management_info_page") ) {
@@ -194,10 +184,7 @@ if( !function_exists("customer_management_info_page") ) {
                             <label id="c_m_address" class="col-sm-6 col-form-label">Adresa realizace: </label>
                         </div>
                         <div class="form-group row">
-                            <label class="col-sm-6 col-form-label">
-                                Termín:
-                                <input id="c_m_end_date" type="date" class="termin" value="" data-id="">
-                            </label>
+                            <label id="c_m_end_date" class="col-sm-6 col-form-label">Termín: </label>
                             <label id="c_m_created_date" class="col-sm-6 col-form-label">Datum vytvoření: </label>
                         </div>
                         <legend><span class="number">2</span> Aktivita</legend>
@@ -221,7 +208,8 @@ if( !function_exists("customer_management_info_page") ) {
         <table class="table" style="text-align: center;" id="myTable">
             <thead>
                 <tr>
-                    <th>Číslo zákazníka</th>
+                    <th style="display: none;">Číslo zákazníka</th>
+                    <th>Termín</th>
                     <th>Název</th>
                     <th>Stav</th>
                     <th style="display: none;"></th>
@@ -292,14 +280,13 @@ if( !function_exists("customer_management_info_page") ) {
 
                     $meta = get_post_meta($post->ID);
                     $title = $post->post_title;
-                    $email = $meta['e-mail'][0];
-                    $telefon = $meta['telefon'][0];
-                    $adresa_realizace = $meta['adresa_realizace'][0];
+                    $email = get_post_meta($post->ID, 'e-mail', true);
+                    $telefon = get_post_meta($post->ID, 'telefon', true);
+                    $adresa_realizace = get_post_meta($post->ID, 'adresa_realizace', true);
+                    $status = get_post_meta($post->ID, 'status', true);
 
-                    if (empty($meta['status']))
+                    if (!$status || $status < 20)
                         $status = $stavs[0]->ID;
-                    else
-                        $status = $meta['status'][0];
                     // if ($status < 20)
                     //     update_post_meta($post->ID, 'status', 2813 + $status);
                     
@@ -336,10 +323,20 @@ if( !function_exists("customer_management_info_page") ) {
                     }
                     $htmlOsoba .= '</select>';
 
-                    $formular = $meta['formular'][0];
-                    $obhlidka = $meta['obhlidka'][0];
-                    $termin = $meta['termin'][0];
-                    $poznamka = $meta['poznamka'][0];
+                    $formular = get_post_meta($post->ID, 'formular', true);
+                    $obhlidka = get_post_meta($post->ID, 'obhlidka', true);
+                    $termin   = get_post_meta($post->ID, 'nabidky_created_date', true);
+                    $nabidky_date = get_post_meta($status, 'nabidky_date', true);
+                    $termin_style = '';
+                    if ($termin && $nabidky_date) {
+                        $termin = date('Y-m-d', strtotime($termin . '+ ' . $nabidky_date . ' days'));
+
+                        $today = date('Y-m-d');
+                        if (strtotime($termin) < strtotime($today)) {
+                            $termin_style = 'color: #ED1C24';
+                        }
+                    }
+                    $poznamka = get_post_meta($post->ID, 'poznamka', true);
 
                     if ($meta['poznamka'][0]) {
                         $current_user = wp_get_current_user();
@@ -367,7 +364,8 @@ if( !function_exists("customer_management_info_page") ) {
                     }
 
                     echo '<tr data-id="' . $post->ID . '">' .
-                            '<td>' . $customer_number . '</td>' .
+                            '<td style="display: none;">' . $customer_number . '</td>' .
+                            '<td style="' . $termin_style . '">' . $termin . '</td>' .
                             '<td><a href="#customerModal" data-toggle="modal" data-target="#customerModal">' . $title . '</a></td>' .
                             '<td' . $style . '>' . $htmlStatus . '</td>' .
                             '<td style="display: none;">' . $stavAAA . '</td>' .
@@ -378,7 +376,7 @@ if( !function_exists("customer_management_info_page") ) {
                             '<td>' . $kraj . '</td>' .
                             '<td style="display: none;">' . $adresa_realizace . '</td>' .
                             '<td style="display: none;">' . $post->post_date_gmt . '</td>' .
-                            '<td style="display: none;"><input type="date" class="termin" value="' . $termin . '" data-id="'.$post->ID.'">' . '</td>' .
+                            '<td style="display: none;">' . $termin . '</td>' .
                             '<td><a href="' . get_edit_post_link($post->ID) . '">Upravit</a>' . '</td>' .
                             '<td>' .
                                 '<a href="' . add_query_arg( array(
@@ -454,28 +452,6 @@ if( !function_exists("customer_management_info_page") ) {
             });
         });
         
-        jQuery(document).on('change', '.termin', function() {
-            let termin = jQuery(this).val();
-            let postID = jQuery(this).attr('data-id');
-            
-            jQuery.ajax({
-                url : '<?php echo admin_url('admin-ajax.php'); ?>',
-                type : 'post',
-                data : {
-                    action : 'send_termin',
-                    postID : postID,
-                    termin : termin,
-                },
-                success : function( response ) {
-                    window.location.href = '<?php echo admin_url('admin.php?page=customer-management'); ?>';
-                    console.log('success');
-                },
-                error: function (error) {
-                    console.log(error);
-                }
-            });
-        });
-
         jQuery(document).on('change', '.status-select', function() {
             let mytd = jQuery(this).parent();
             let status = jQuery(this).val();
@@ -533,9 +509,9 @@ if( !function_exists("customer_management_info_page") ) {
                 'order': [0, 'desc'],
                 initComplete: function () {
                     this.api().columns().eq(0).each( function (index) {
-                        const columnStatus = this.column(3);
-                        const columnOsoba  = this.column(5);
-                        const columnKraj   = this.column(8);
+                        const columnStatus = this.column(4);
+                        const columnOsoba  = this.column(6);
+                        const columnKraj   = this.column(9);
 
                         if (index === 5) {
                             var div1 = $(`<div id='my_filter' style='display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;'></div>`);
@@ -658,7 +634,7 @@ if( !function_exists("customer_management_info_page") ) {
             function( settings, data, dataIndex ) {
                 var min = new Date($('#datepicker_from').val());
                 var max = new Date($('#datepicker_to').val());
-                var date = new Date( data[10] );
+                var date = new Date( data[11] );
 
                 min.setHours(0, 0, 0, 0);
                 max.setHours(23, 59, 59, 59);

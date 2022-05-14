@@ -1,5 +1,5 @@
 <?php
-function add_pdfs_to_zakaznici($pdf, $file_name, $client_name, $flag) {
+function add_pdfs_to_zakaznici($pdf, $file_name, $post_id, $client_name, $flag) {
     $uploaddir = wp_upload_dir();
     $uploadfile = $uploaddir['path'] . '/' . $file_name;
     $pdf->Output($uploadfile, 'F');
@@ -31,6 +31,8 @@ function add_pdfs_to_zakaznici($pdf, $file_name, $client_name, $flag) {
     } else if ($flag == 4) {
         update_post_meta($zakaznici_post_id, 'nabidky_rozpoctovou_tabulku', $attach_id);
     }
+
+    update_post_meta($zakaznici_post_id, 'nabidky_created_date', get_the_date("Y-m-d", $post_id));
 }
 
 // download pdf
@@ -45,8 +47,8 @@ function download_pdf($nabidky_id, $download_flag) {
     $client_name    = get_post_meta($nabidky_id, 'zakaznik', true);
     $address        = get_post_meta($nabidky_id, 'adresa_instalace', true);
     $valid_date     = get_post_meta($nabidky_id, 'datum', true);
-    $valid_date = get_the_date('Y-m-d', $nabidky_id);
-    $valid_date = date('d.m.Y', strtotime("-1 day", strtotime("+1 month", strtotime($valid_date))));
+    $valid_date     = get_the_date('Y-m-d', $nabidky_id);
+    $valid_date     = date('d.m.Y', strtotime("-1 day", strtotime("+1 month", strtotime($valid_date))));
 
     $balicek_id = get_post_meta($nabidky_id, 'vyberte_balicek', true);
     $dotaci_id = get_post_meta($nabidky_id, 'vyberte_dotaci', true);
@@ -220,7 +222,7 @@ function download_pdf($nabidky_id, $download_flag) {
         $pdf->Output($file_name, 'D');
         exit;
     } else if ($download_flag == 1) {
-        add_pdfs_to_zakaznici($pdf, $file_name, $client_name, 1);
+        add_pdfs_to_zakaznici($pdf, $file_name, $nabidky_id, $client_name, 1);
     }
 }
 
@@ -512,7 +514,7 @@ function download_contrac_pdf($post_id, $download_flag) {
         $pdf->Output($file_name, 'D');
         exit;
     } else if ($download_flag == 1) {
-        add_pdfs_to_zakaznici($pdf, $file_name, $name, 2);
+        add_pdfs_to_zakaznici($pdf, $file_name, $post_id, $name, 2);
     }
 }
 
@@ -792,7 +794,7 @@ function download_zakaznic_pdf($nabidky_post_id, $download_flag) {
         $pdf->Output($file_name, 'D');
         exit;
     } else if ($download_flag == 1) {
-        add_pdfs_to_zakaznici($pdf, $file_name, $name, 3);
+        add_pdfs_to_zakaznici($pdf, $file_name, $nabidky_post_id, $name, 3);
     }
 }
 
@@ -962,7 +964,7 @@ function download_technical_pdf($post_id, $download_flag) {
         $pdf->Output($file_name, 'D');
         exit;
     } else if ($download_flag == 1){
-        add_pdfs_to_zakaznici($pdf, $file_name, $name, 4);
+        add_pdfs_to_zakaznici($pdf, $file_name, $post_id, $name, 4);
     }
 }
 ?>
