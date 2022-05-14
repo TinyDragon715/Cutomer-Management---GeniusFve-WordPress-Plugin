@@ -61,7 +61,7 @@ function check_nabidky_exec() {
 			$termin = date('Y-m-d', strtotime($termin . '+ ' . $nabidky_date . ' days'));
 
 			$today = date('Y-m-d');
-			// if (strtotime($termin) < strtotime($today)) {
+			if (strtotime($termin) < strtotime($today)) {
 				$to = 'holub@genius-web.cz';
 				$subject = 'Je zde nabídka, která termín skončilo.';
 
@@ -69,14 +69,11 @@ function check_nabidky_exec() {
 				Uzávěrka nabídky této zákazníci vypršela.<br>
 				Tým Genius FVE.';
 				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Genius FVE <info@geniusfve.cz>');
-				// wp_mail($to, $subject, $body, $headers);
-
-				// $to = 'jiriandr@genius-web.cz';
-				// wp_mail($to, $subject, $body, $headers);
-
-				$to = 'vladimir715.han@gmail.com';
 				wp_mail($to, $subject, $body, $headers);
-			// }
+
+				$to = 'jiriandr@genius-web.cz';
+				wp_mail($to, $subject, $body, $headers);
+			}
 		}
 	}
 }
