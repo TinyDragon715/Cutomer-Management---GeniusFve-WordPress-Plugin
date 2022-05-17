@@ -69,10 +69,10 @@ function check_nabidky_exec() {
 				Uzávěrka nabídky této zákazníci vypršela.<br>
 				Tým Genius FVE.';
 				$headers = array('Content-Type: text/html; charset=UTF-8', 'From: Genius FVE <info@geniusfve.cz>');
-				wp_mail($to, $subject, $body, $headers);
+				// wp_mail($to, $subject, $body, $headers);
 
 				$to = 'jiriandr@genius-web.cz';
-				wp_mail($to, $subject, $body, $headers);
+				// wp_mail($to, $subject, $body, $headers);
 			}
 		}
 	}
